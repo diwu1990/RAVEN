@@ -28,15 +28,15 @@ class RAVEN_PE(torch.nn.Module):
     
     def add(self, in_1, in_2, cycle):
         pass
-        
+    
     def div(self, in_1, in_2, cycle):
         self.div_lut
         pass
-        
+    
     def exp(self, in_1, cycle):
         self.exp_lut
         pass
-        
+    
     def log(self, in_1, cycle):
         self.log_lut
         pass
