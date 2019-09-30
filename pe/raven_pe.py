@@ -13,37 +13,55 @@ class RAVEN_PE(torch.nn.Module):
     5. log
     
     supported approximation algorithms:
-    1. taylor series based
-    2. log2 based
+    1. log2 based
+    2. taylor series based
     """
-    def __init__(self, bitwidth=8, fracwidth=3, mode="log2", distribution=None):
+    def __init__(self, bitwidth=8, fracwidth=3, distribution=None):
         super(RAVEN_PE, self).__init__()
         self.bitwidth = torch.nn.Parameter(torch.tensor([bitwidth]), requires_grad=False)
         self.fracwidth = torch.nn.Parameter(torch.tensor([fracwidth]), requires_grad=False)
-        self.mode = mode
-        if self.mode is "taylor":
-            pe_lut = PE_LUT(distribution)
-            self.div_lut, self.exp_lut, self.log_lut = PE_LUT()
+        pe_lut = PE_LUT(distribution)
+        self.div_lut, self.exp_lut, self.log_lut = PE_LUT()
     
-    def mul(self, in_1, in_2, cycle):
+    # log2 based implementation
+    def log2_mul(self, in_1, in_2):
         pass
     
-    def add(self, in_1, in_2, cycle):
+    def log2_add(self, in_1, in_2):
         pass
     
-    def div(self, in_1, in_2, cycle):
+    def log2_div(self, in_1, in_2):
         self.div_lut
         pass
     
-    def exp(self, in_1, cycle):
+    def log2_exp(self, in_1):
         self.exp_lut
         pass
     
-    def log(self, in_1, cycle):
+    def log2_log(self, in_1):
         self.log_lut
         pass
     
-    def forward(self, in_1, in_2, function="add", cycle=1):
+    # taylor series based implementation
+    def taylor_mul(self, in_1, in_2, cycle):
+        pass
+    
+    def taylor_add(self, in_1, in_2, cycle):
+        pass
+    
+    def taylor_div(self, in_1, in_2, cycle):
+        self.div_lut
+        pass
+    
+    def taylor_exp(self, in_1, cycle):
+        self.exp_lut
+        pass
+    
+    def taylor_log(self, in_1, cycle):
+        self.log_lut
+        pass
+    
+    def forward(self, in_1, in_2, function="add", mode="log2", cycle=1):
         if function == "add":
             return self.add(in_1, in_2, cycle)
         elif function == "mul":
