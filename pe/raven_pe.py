@@ -1,6 +1,6 @@
 import torch
 from RAVEN.pe.pe_lut import PE_LUT
-        
+
 class RAVEN_PE(torch.nn.Module):
     """
     reconfigurable processing element for RAVEN.
