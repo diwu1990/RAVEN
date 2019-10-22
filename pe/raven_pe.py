@@ -13,21 +13,41 @@ class RAVEN_PE(torch.nn.Module):
     5. log
     
     supported approximation algorithms:
-    1. log2 based
-    2. taylor series based
+    1. taylor series based
+    2. log2 based
     """
-    def __init__(self, bitwidth=8, fracwidth=3, distribution=None):
+    def __init__(self, bitwidth=8, intwidth=4, distribution="middle"):
         super(RAVEN_PE, self).__init__()
         self.bitwidth = torch.nn.Parameter(torch.tensor([bitwidth]), requires_grad=False)
-        self.fracwidth = torch.nn.Parameter(torch.tensor([fracwidth]), requires_grad=False)
+        self.intwidth = torch.nn.Parameter(torch.tensor([intwidth]), requires_grad=False)
+        self.fracwidth = self.bitwidth - self.intwidth
         pe_lut = PE_LUT(distribution)
-        self.div_lut, self.exp_lut, self.log_lut = PE_LUT()
+        self.div_lut, self.exp_lut, self.log_lut = pe_lut()
     
-    # log2 based implementation
-    def log2_mul(self, in_1, in_2):
+    # taylor series based implementation
+    def taylor_add(self, in_1, in_2, cycle):
+        return in_1.add(in2)
+    
+    def taylor_mul(self, in_1, in_2, cycle):
+        return in_1.mul(in2)
+    
+    def taylor_div(self, in_1, in_2, cycle):
+        self.div_lut
         pass
     
+    def taylor_exp(self, in_1, cycle):
+        self.exp_lut
+        pass
+    
+    def taylor_log(self, in_1, cycle):
+        self.log_lut
+        pass
+
+    # log2 based implementation
     def log2_add(self, in_1, in_2):
+        pass
+    
+    def log2_mul(self, in_1, in_2):
         pass
     
     def log2_div(self, in_1, in_2):
@@ -42,30 +62,11 @@ class RAVEN_PE(torch.nn.Module):
         self.log_lut
         pass
     
-    # taylor series based implementation
-    def taylor_mul(self, in_1, in_2, cycle):
-        pass
-    
-    def taylor_add(self, in_1, in_2, cycle):
-        pass
-    
-    def taylor_div(self, in_1, in_2, cycle):
-        self.div_lut
-        pass
-    
-    def taylor_exp(self, in_1, cycle):
-        self.exp_lut
-        pass
-    
-    def taylor_log(self, in_1, cycle):
-        self.log_lut
-        pass
-    
-    def forward(self, in_1, in_2, function="add", mode="log2", cycle=1):
+    def forward(self, in_1, in_2, function="add", mode="taylor", cycle=1):
         if function == "add":
-            return self.add(in_1, in_2, cycle)
+            return self.add(in_1, in_2)
         elif function == "mul":
-            return self.mul(in_1, in_2, cycle)
+            return self.mul(in_1, in_2)
         elif function == "div":
             return self.div(in_1, in_2, cycle)
         elif function == "exp":
