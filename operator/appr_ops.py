@@ -8,7 +8,7 @@ class RAVEN_EXP(torch.nn.Module):
     1. taylor series based
     2. log2 based
     """
-    def __init__(self, bitwidth=8, intwidth=4, mode="fxp", distribution="middle"):
+    def __init__(self, fxp=True, bitwidth=8, intwidth=4, mode="taylor", distribution="middle"):
         super(RAVEN_PE, self).__init__()
         self.bitwidth = torch.nn.Parameter(torch.tensor([bitwidth]), requires_grad=False)
         self.intwidth = torch.nn.Parameter(torch.tensor([intwidth]), requires_grad=False)
@@ -21,20 +21,15 @@ class RAVEN_EXP(torch.nn.Module):
         self.exp_lut
         pass
     
+    # log2 based implementation
     def log2_exp(self, in_1):
         self.exp_lut
         pass
     
-    def forward(self, in_1, in_2, function="add", mode="taylor", cycle=1):
-        if function == "add":
-            return self.add(in_1, in_2)
-        elif function == "mul":
-            return self.mul(in_1, in_2)
-        elif function == "div":
-            return self.div(in_1, in_2, cycle)
-        elif function == "exp":
-            return self.exp(in_1, cycle)
-        elif function == "log":
-            return self.log(in_1, cycle)
+    def forward(self, input, cycle=1):
+        if self.mode == "taylor":
+            return self.taylor_exp(input, cycle)
+        elif self.mode == "log2":
+            return self.log2_log(input, cycle)
         else:
             raise ValueError("Input functional mode is not implemented.")
