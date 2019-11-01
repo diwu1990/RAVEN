@@ -1,5 +1,8 @@
 import torch
 
+def trunc(x, bitwidth,fracwidth):
+    
+    
 def Poly_Calc(x, coeff, power, sign):
     """
     Calculate the result for polynomial.
@@ -10,9 +13,12 @@ def Poly_Calc(x, coeff, power, sign):
     len_sign  = sign.size()
     assert (len_coeff == len_power and len_coeff == len_sign), "Non-indentical size for coeff, power and sign."
     
-    output = torch.ones_like(x)
+    acc = torch.zeros_like(x)
+    prod = torch.ones_like(x)
     for idx in range(len_coeff):
-        output += coeff * input**power * sign
+        prod.mul_(x.pow(power[idx]))
+        acc.add_(coeff[idx] *  * sign[idx])
+        
     
     
     
