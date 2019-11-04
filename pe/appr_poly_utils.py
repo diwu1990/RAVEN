@@ -1,26 +1,21 @@
 import torch
 
-def trunc(x, bitwidth,fracwidth):
+def trunc(x, bitwidth, fracwidth):
+    x.mul(fracwidth)
     
     
-def Poly_Calc(x, coeff, power, sign):
+def Poly_Appr_Taylor(x, coeff, power, sign):
     """
     Calculate the result for polynomial.
     """
-    # check the size of coeff, power and sign are the same.
-    len_coeff = coeff.size()
-    len_power = power.size()
-    len_sign  = sign.size()
-    assert (len_coeff == len_power and len_coeff == len_sign), "Non-indentical size for coeff, power and sign."
-    
     acc = torch.zeros_like(x)
     prod = torch.ones_like(x)
+    
     for idx in range(len_coeff):
         prod.mul_(x.pow(power[idx]))
         acc.add_(coeff[idx] *  * sign[idx])
         
-    
-    
+    return acc
     
 class Ref_Func(object):
     """
