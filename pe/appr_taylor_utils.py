@@ -76,7 +76,8 @@ def Appr_Taylor(scale, const, var, coeff, power, sign, fxp=True, intwidth=7, fra
         shift = torch.zeros_like(var)
         output = torch.zeros_like(var)
         
-        # both scale and var are of format (1, intwidth, fracwidth), as they participate in the multiplication
+        # both scale and var are of format (1, intwidth, fracwidth), as 
+        # they participate in the multiplication
         scale = Trunc(scale, 
                       intwidth = intwidth, 
                       fracwidth = fracwidth, 
@@ -87,7 +88,8 @@ def Appr_Taylor(scale, const, var, coeff, power, sign, fxp=True, intwidth=7, fra
                     fracwidth = fracwidth, 
                     rounding = rounding)
         
-        # const is of format (1, 2 * intwidth + 1, 2 * fracwidth), as it participates in the accumulation
+        # const is of format (1, 2 * intwidth + 1, 2 * fracwidth), as it 
+        # participates in the accumulation
         const = Trunc(const, 
                       intwidth = 2 * intwidth + 2, 
                       fracwidth = 2 * fracwidth, 
@@ -139,9 +141,23 @@ def Appr_Taylor(scale, const, var, coeff, power, sign, fxp=True, intwidth=7, fra
             raise ValueError("Input keepwidth need to be of bool type.")
     
     if fxp is True:
-        return fxp_poly(scale, const, var, coeff, power, sign, intwidth, fracwidth, rounding)
+        return fxp_poly(scale, 
+                        const, 
+                        var, 
+                        coeff, 
+                        power, 
+                        sign, 
+                        intwidth=intwidth, 
+                        fracwidth=fracwidth, 
+                        rounding=rounding, 
+                        keepwidth=keepwidth)
     elif fxp is False:
-        return flp_poly(scale, const, var, coeff, power, sign)
+        return flp_poly(scale, 
+                        const, 
+                        var, 
+                        coeff, 
+                        power, 
+                        sign)
     else:
         raise ValueError("fxp mode have to be of bool type.")
         

@@ -1,11 +1,14 @@
 import torch
-import RAVEN.pe.appr_poly_utils import Appr_Taylor
+from RAVEN.pe.appr_poly_utils import Appr_Taylor
 
 class ApprExp(torch.autograd.Function):
     """
-    ApprExp is the approximate exponentiation with the gradient for the approximate exponentiation.
-    The gradient is always floating-point, regardless of approximation or not.
-    A precise exponentiation example can be found here (https://pytorch.org/docs/stable/_modules/torch/autograd/function.html)
+    ApprExp is the approximate exponentiation with the gradient for the 
+    approximate exponentiation.
+    The gradient is always floating-point, regardless of approximation or 
+    not.
+    A precise exponentiation example can be found here:
+    https://pytorch.org/docs/stable/_modules/torch/autograd/function.html
     """
     # Note that both forward and backward are @staticmethods
     @staticmethod
@@ -33,7 +36,8 @@ class ApprExp(torch.autograd.Function):
         else:
             raise ValueError("Input bitwidth is not supported yet.")
             
-        # Here the length of three tuples (coeff, power, and sign) should be the same
+        # Here the length of three tuples (coeff, power, and sign) should be 
+        # the same
         if distribution == "uniform":
             # parameters for approximate polynomial in forward pass
             ctx.coeff_fw = coeff_fw
