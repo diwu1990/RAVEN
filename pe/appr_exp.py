@@ -1,5 +1,5 @@
 import torch
-from RAVEN.pe.appr_poly import Poly_Appr_Taylor
+from RAVEN.pe.appr_poly_utils import *
     
 class APPR_EXP(torch.nn.Module):
     """
