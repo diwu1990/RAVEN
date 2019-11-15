@@ -17,7 +17,7 @@ class RoundingNoGrad(torch.autograd.Function):
         elif mode == "ceil":
             return input.ceil()
         else:
-            raise ValueError("Rounding mode is not supported.")
+            raise ValueError("Input rounding mode is not supported.")
     
     # This function has only a single output, so it gets only one gradient
     @staticmethod
@@ -163,7 +163,7 @@ def Appr_Taylor(scale,
                          fracwidth = 2 * fracwidth, 
                          rounding = rounding)
         else:
-            raise ValueError("Input keepwidth need to be of bool type.")
+            raise ValueError("Input keepwidth mode need to be of bool type.")
     
     if fxp is True:
         return fxp_poly(scale, 
@@ -184,7 +184,7 @@ def Appr_Taylor(scale,
                         power, 
                         sign)
     else:
-        raise ValueError("fxp mode have to be of bool type.")
+        raise ValueError("Input fxp mode have to be of bool type.")
         
 
 def exp_data_gen(distribution="uniform"):
@@ -208,61 +208,268 @@ def exp_data_gen(distribution="uniform"):
         sigma = torch.ones([100000]).mul(0.3)
         data = torch.distributions.normal.Normal(mu, sigma).sample()
         data = data - data.floor()
-
+    else:
+        raise ValueError("Input distribution mode is not supported.")
     return data
 
 
-def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True):
+def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
+    # max number of terms besides the constant
+    max_term = 7
+    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
+    max_shift = 3
+    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
+    max_power_diff = 2
+    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
+    max_sign_change = 2
+    
     # define the floating-point input
     data = exp_data_gen(distribution)
-
+    
     # reference model
     ref_result = torch.exp(data)
 
     # approximate taylor series
     point_list = [0.0, 0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875]
+
     for point in point_list:
         scale = torch.exp(torch.Tensor([point]))
         const = torch.Tensor([1.])
-        var   = data - var
-        coeff = [1/1]
-        power = [1]
-        sign  = [1]
+        var   = data - point
+        
+        coeff = [1/1, 1/2]
+        power = [  1,   2]
+        sign  = [  1,   1]
+        
         min_err = []
         max_err = []
+        avg_err = []
         rms_err = []
 
-        appr_result = Appr_Taylor(scale, 
-                                    const, 
-                                    var, 
-                                    coeff, 
-                                    power, 
-                                    sign, 
-                                    fxp=True, 
-                                    intwidth=7, 
-                                    fracwidth=8, 
-                                    rounding="floor", 
-                                    keepwidth=True)
+        appr_result = Appr_Taylor(scale,
+                                  const, 
+                                  var, 
+                                  coeff, 
+                                  power, 
+                                  sign, 
+                                  fxp=True, 
+                                  intwidth=7, 
+                                  fracwidth=8, 
+                                  rounding="floor", 
+                                  keepwidth=True)
         appr_err = (appr_result - ref_result)/ref_result
 
         min_err.append(appr_err.min().item())
         max_err.append(appr_err.max().item())
+        avg_err.append(appr_err.mean().item())
         rms_err.append(appr_err.mul(appr_err).mean().sqrt().item())
 
-        print(min_err)
-        print(max_err)
-        print(rms_err)
+        # this loop is for number of terms
+        for term_idx in range(max_term-2):
+            temp_coeff = coeff[:]
+            temp_coeff.append(coeff[-1])
+            temp_power = power[:]
+            temp_power.append(power[-1])
+            temp_sign  = sign[:]
+            temp_sign.append(sign[-1])
+            
+            temp_min_error = 0
+            temp_max_error = 0
+            temp_avg_error = 0
+            temp_rms_error = 10000000000
+            
+            # this loop is for shifting offset of coeff
+            for coeff_idx in range(-max_shift, max_shift+1):
+                temp_coeff[-1] = coeff[-1] * (2**coeff_idx)
+                
+                # this loop is for multiplication of var
+                for power_idx in range(max_power_diff):
+                    temp_power[-1] = power[-1] + power_idx
+                    
+                    # this loop is for accumulation of terms
+                    for sign_idx in range(max_sign_change):
+                        temp_sign[-1]  = sign[-1] * (1-2*sign_idx)
+                        
+                        appr_result = Appr_Taylor(scale,
+                                                  const, 
+                                                  var, 
+                                                  temp_coeff, 
+                                                  temp_power, 
+                                                  temp_sign, 
+                                                  fxp=True, 
+                                                  intwidth=intwidth, 
+                                                  fracwidth=fracwidth, 
+                                                  rounding=rounding, 
+                                                  keepwidth=True)
+                        appr_err = (appr_result - ref_result)/ref_result
+        
+                        if appr_err.mul(appr_err).mean().sqrt().item() < temp_rms_error:
+                            new_coeff = temp_coeff[-1]
+                            new_power = temp_power[-1]
+                            new_sign  = temp_sign[-1]
+                            temp_min_error = appr_err.min().item()
+                            temp_max_error = appr_err.max().item()
+                            temp_avg_error = appr_err.mean().item()
+                            temp_rms_error = appr_err.mul(appr_err).mean().sqrt().item()
+            
+            coeff.append(new_coeff)
+            power.append(new_power)
+            sign.append(new_sign)
+            min_err.append(temp_min_error)
+            max_err.append(temp_max_error)
+            avg_err.append(temp_avg_error)
+            rms_err.append(temp_rms_error)
+            
+        # final check for useless round
+        if valid is True:
+            valid_length = len(set(rms_err))
+            coeff = coeff[0:valid_length]
+            power = power[0:valid_length]
+            sign  = sign[0:valid_length]
+            min_err = min_err[0:valid_length]
+            max_err = max_err[0:valid_length]
+            avg_err = avg_err[0:valid_length]
+            rms_err = rms_err[0:valid_length]
+        
+        print("Approximate Taylor series at point:", point)
+        print("final coeff", coeff)
+        print("final power", power)
+        print("final sign", sign)
+        
+        print("min error:", ["{0:0.5f}".format(i) for i in min_err])
+        print("max error:", ["{0:0.5f}".format(i) for i in max_err])
+        print("avg error:", ["{0:0.5f}".format(i) for i in avg_err])
+        print("rms error:", ["{0:0.5f}".format(i) for i in rms_err])
+        print("")
+        
 
-        # # this loop is for number of terms
-        # for term_idx in range(7):
-        #     temp_coeff = coeff.append(coeff[-1])
-        #     # this loop is for shifting offset of coeff
-        #     for coeff_idx in range(4):
-        #         # this loop is for multiplication of var
-        #         for power_idx in range(2):
-        #             # this loop is for accumulation of terms
-        #             for sign_idx in range(2):
+def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
+    # max number of terms besides the constant
+    max_term = 7
+    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
+    max_shift = 3
+    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
+    max_power_diff = 2
+    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
+    max_sign_change = 2
+    
+    # define the floating-point input
+    data = exp_data_gen(distribution)
+    
+    # reference model
+    ref_result = torch.div(1, data)
 
+    # approximate taylor series
+    point_list = [0.0, 0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875]
 
+    for point in point_list:
+        scale = torch.exp(torch.Tensor([point]))
+        const = torch.Tensor([1.])
+        var   = data - point
+        
+        coeff = [1/1, 1/2]
+        power = [  1,   2]
+        sign  = [  1,   1]
+        
+        min_err = []
+        max_err = []
+        avg_err = []
+        rms_err = []
+
+        appr_result = Appr_Taylor(scale,
+                                  const, 
+                                  var, 
+                                  coeff, 
+                                  power, 
+                                  sign, 
+                                  fxp=True, 
+                                  intwidth=7, 
+                                  fracwidth=8, 
+                                  rounding="floor", 
+                                  keepwidth=True)
+        appr_err = (appr_result - ref_result)/ref_result
+
+        min_err.append(appr_err.min().item())
+        max_err.append(appr_err.max().item())
+        avg_err.append(appr_err.mean().item())
+        rms_err.append(appr_err.mul(appr_err).mean().sqrt().item())
+
+        # this loop is for number of terms
+        for term_idx in range(max_term-2):
+            temp_coeff = coeff[:]
+            temp_coeff.append(coeff[-1])
+            temp_power = power[:]
+            temp_power.append(power[-1])
+            temp_sign  = sign[:]
+            temp_sign.append(sign[-1])
+            
+            temp_min_error = 0
+            temp_max_error = 0
+            temp_avg_error = 0
+            temp_rms_error = 10000000000
+            
+            # this loop is for shifting offset of coeff
+            for coeff_idx in range(-max_shift, max_shift+1):
+                temp_coeff[-1] = coeff[-1] * (2**coeff_idx)
+                
+                # this loop is for multiplication of var
+                for power_idx in range(max_power_diff):
+                    temp_power[-1] = power[-1] + power_idx
+                    
+                    # this loop is for accumulation of terms
+                    for sign_idx in range(max_sign_change):
+                        temp_sign[-1]  = sign[-1] * (1-2*sign_idx)
+                        
+                        appr_result = Appr_Taylor(scale,
+                                                  const, 
+                                                  var, 
+                                                  temp_coeff, 
+                                                  temp_power, 
+                                                  temp_sign, 
+                                                  fxp=True, 
+                                                  intwidth=intwidth, 
+                                                  fracwidth=fracwidth, 
+                                                  rounding=rounding, 
+                                                  keepwidth=True)
+                        appr_err = (appr_result - ref_result)/ref_result
+        
+                        if appr_err.mul(appr_err).mean().sqrt().item() < temp_rms_error:
+                            new_coeff = temp_coeff[-1]
+                            new_power = temp_power[-1]
+                            new_sign  = temp_sign[-1]
+                            temp_min_error = appr_err.min().item()
+                            temp_max_error = appr_err.max().item()
+                            temp_avg_error = appr_err.mean().item()
+                            temp_rms_error = appr_err.mul(appr_err).mean().sqrt().item()
+            
+            coeff.append(new_coeff)
+            power.append(new_power)
+            sign.append(new_sign)
+            min_err.append(temp_min_error)
+            max_err.append(temp_max_error)
+            avg_err.append(temp_avg_error)
+            rms_err.append(temp_rms_error)
+            
+        # final check for useless round
+        if valid is True:
+            valid_length = len(set(rms_err))
+            coeff = coeff[0:valid_length]
+            power = power[0:valid_length]
+            sign  = sign[0:valid_length]
+            min_err = min_err[0:valid_length]
+            max_err = max_err[0:valid_length]
+            avg_err = avg_err[0:valid_length]
+            rms_err = rms_err[0:valid_length]
+        
+        print("Approximate Taylor series at point:", point)
+        print("final coeff", coeff)
+        print("final power", power)
+        print("final sign", sign)
+        
+        print("min error:", ["{0:0.5f}".format(i) for i in min_err])
+        print("max error:", ["{0:0.5f}".format(i) for i in max_err])
+        print("avg error:", ["{0:0.5f}".format(i) for i in avg_err])
+        print("rms error:", ["{0:0.5f}".format(i) for i in rms_err])
+        print("")
 
 
