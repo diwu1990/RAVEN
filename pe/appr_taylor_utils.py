@@ -343,7 +343,8 @@ def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
         print("")
         
 
-def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
+
+def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
     # max number of terms besides the constant
     max_term = 7
     # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
@@ -357,7 +358,7 @@ def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
     data = exp_data_gen(distribution)
     
     # reference model
-    ref_result = torch.div(1, data)
+    ref_result = torch.exp(data)
 
     # approximate taylor series
     point_list = [0.0, 0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875]
@@ -471,5 +472,4 @@ def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
         print("avg error:", ["{0:0.5f}".format(i) for i in avg_err])
         print("rms error:", ["{0:0.5f}".format(i) for i in rms_err])
         print("")
-
 
