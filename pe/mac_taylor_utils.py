@@ -1,18 +1,21 @@
 import torch
-from RAVEN.pe.appr_taylor_utils import RoundingNoGrad, Trunc
+from RAVEN.pe.appr_utils import *
 
-def Mac_Taylor(scale, 
-               var, 
+def MAC_Taylor(scale, 
                coeff, 
+               var, 
                fxp=True, 
                intwidth=7, 
                fracwidth=8, 
-               rounding="floor", 
+               rounding_coeff="ceil", 
+               rounding_var="floor", 
                keepwidth=True):
     """
     Calculate the result of approximate Taylor series.
     The results is calculated as:
     output = scale * (const + sum(coeff * var^power))
+    
+    All inputs are tensors.
     
     Assume that there are N taylor terms, which is the length of coeff, power always goes from 0 to N-1.
     1) Tensor scale is calculated by shifting input or using very small LUT.
@@ -23,26 +26,24 @@ def Mac_Taylor(scale,
     """
     
     def flp_poly(scale, 
-                 var, 
-                 coeff):
+                 coeff, 
+                 var):
         # initialization
-        acc = torch.zeros_like(var).add(const)
+        acc = torch.zeros_like(var)
         
         # cumulate the terms
         for idx in range(0, len(coeff)):
-            acc.add_(coeff[idx] * var.pow(power[idx]) * sign[idx])
+            acc.add_(coeff[idx] * var.pow(idx))
             
         return acc.mul(scale)
     
     def fxp_poly(scale, 
-                 const, 
-                 var, 
                  coeff, 
-                 power, 
-                 sign, 
+                 var, 
                  intwidth=7, 
                  fracwidth=8, 
-                 rounding="floor", 
+                 rounding_coeff="ceil", 
+                 rounding_var="floor", 
                  keepwidth=True):
         # 1) For multiplication,
         # each input has the format of (1, intwidth, fracwidth),
@@ -52,468 +53,197 @@ def Mac_Taylor(scale,
         # the output has the format of (1, 2 * intwidth + 2, 2 * fracwidth)
 
         acc = torch.zeros_like(var)
-        prod = torch.ones_like(var)
-        shift = torch.zeros_like(var)
-        output = torch.zeros_like(var)
-        
-        # both scale and var are of format (1, intwidth, fracwidth), as 
-        # they participate in the multiplication
+
+        # scale and var have format of (1, intwidth, fracwidth), as they both participate 
+        # in the multiplication.
         scale = Trunc(scale, 
                       intwidth = intwidth, 
                       fracwidth = fracwidth, 
-                      rounding = rounding)
+                      rounding = rounding_var)
         
         var = Trunc(var, 
                     intwidth = intwidth, 
                     fracwidth = fracwidth, 
-                    rounding = rounding)
-        
-        # const is of format (1, 2 * intwidth + 1, 2 * fracwidth), as it 
-        # participates in the accumulation
-        const = Trunc(const, 
-                      intwidth = 2 * intwidth + 2, 
+                    rounding = rounding_var)
+
+        # coeff participates in accumulation, so it has format of (1, 2 * intwidth + 1, 2 * fracwidth)
+        coeff = Trunc(coeff, 
+                      intwidth = 2 * intwidth + 1, 
                       fracwidth = 2 * fracwidth, 
-                      rounding = rounding)
+                      rounding = rounding_coeff)
         
-        # initialization
-        acc = acc.add(const)
-        
-        # calculate the first term with power value of 1
-        shift = Trunc(prod.mul(coeff[0]), 
+        # calculate the first term
+        mul_0 = var
+        mul_1 = Trunc(coeff[-1], 
                       intwidth = intwidth, 
                       fracwidth = fracwidth, 
-                      rounding = rounding)
+                      rounding = rounding_coeff)
+        prod = mul_0.mul(mul_1)
         
-        prod = shift.mul(var.pow(power[0]))
-        
-        acc = acc.add(prod.mul(sign[0]))
+        add_0 = coeff[-2]
+        add_1 = prod
+        acc = add_0.add(add_1)
         
         # cumulate the rest terms
-        for idx in range(1, len(coeff)):
-            shift = Trunc(prod.mul(coeff[idx]/coeff[idx-1]), 
+        for idx in range(0, len(coeff)-2):
+            mul_0 = var
+            mul_1 = Trunc(acc, 
                           intwidth = intwidth, 
                           fracwidth = fracwidth, 
-                          rounding = rounding)
-            
-            prod = shift.mul(var.pow(power[idx]-power[idx-1]))
-            
-            acc = Trunc(acc.add(prod.mul(sign[idx])), 
-                        intwidth = 2 * intwidth + 2, 
-                        fracwidth = 2 * fracwidth, 
-                        rounding = rounding)
-            
-        output = Trunc(acc, 
-                       intwidth = intwidth, 
-                       fracwidth = fracwidth, 
-                       rounding = rounding).mul(scale)
+                          rounding = rounding_var)
+            prod = mul_0.mul(mul_1)
+
+            add_0 = coeff[-3 - idx]
+            add_1 = prod
+            acc = add_0.add(add_1)
+        
+        mul_0 = scale
+        mul_1 = Trunc(acc, 
+                      intwidth = intwidth, 
+                      fracwidth = fracwidth, 
+                      rounding = rounding_var)
+        prod = mul_0.mul(mul_1)
+        
+        output = prod
         
         if keepwidth is True:
             # output has the same bitwidth as input var
-            return output
+            return Trunc(output, 
+                          intwidth = intwidth, 
+                          fracwidth = fracwidth, 
+                          rounding = rounding_var)
         elif keepwidth is False:
             # maintain the bitwidth of multiplier
             # bitwidth of output is twice that of input var
-            return Trunc(output, 
-                         intwidth = 2 * intwidth + 1, 
-                         fracwidth = 2 * fracwidth, 
-                         rounding = rounding)
+            return output
         else:
             raise ValueError("Input keepwidth mode need to be of bool type.")
     
     if fxp is True:
         return fxp_poly(scale, 
-                        const, 
-                        var, 
                         coeff, 
-                        power, 
-                        sign, 
+                        var, 
                         intwidth=intwidth, 
                         fracwidth=fracwidth, 
-                        rounding=rounding, 
+                        rounding_coeff=rounding_coeff, 
+                        rounding_var=rounding_var, 
                         keepwidth=keepwidth)
     elif fxp is False:
         return flp_poly(scale, 
-                        const, 
-                        var, 
                         coeff, 
-                        power, 
-                        sign)
+                        var)
     else:
         raise ValueError("Input fxp mode have to be of bool type.")
+    
+    
+def point_search(func="exp", uniform=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round"):
+    # choose data range according to function
+    if func == "div":
+        data_range = "0.5_1.0"
+        point_list = [1.]
+        mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
+    if func == "exp":
+        data_range = "0.0_1.0"
+        # varying the Taylor expansion point
+        point_list = [0.0, 0.25, 0.500, 0.750, 1.]
+        # varying the distribution of data
+        mu_list = [0.25, 0.5, 0.75]
+    if func == "log":
+        data_range = "0.5_1.0"
+        point_list = [0.500, 0.625, 0.750, 0.875, 1.]
+        mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
+    
+    if uniform == True:
+        sigma = 2
+        mu_list = [0.5]
+    elif uniform == False:
+        sigma = 0.2
         
-
-def param_search(max_extra_term, 
-                 max_shift, 
-                 max_power_diff, 
-                 max_sign_change, 
-                 ref_result, 
-                 point, 
-                 scale, 
-                 const, 
-                 var, 
-                 coeff, 
-                 power, 
-                 sign, 
-                 fxp=True, 
-                 intwidth=7, 
-                 fracwidth=8, 
-                 rounding="floor", 
-                 keepwidth=True, 
-                 valid=True):
-    """
-    search parameters for approximate Taylor series with discrete gradient descend algorithm
-    """
-    
-    min_err = []
-    max_err = []
-    avg_err = []
-    rms_err = []
-    
-    for term_idx in range(len(coeff)):
-        appr_result = Appr_Taylor(scale,
-                                  const, 
-                                  var, 
-                                  coeff[0:term_idx+1], 
-                                  power[0:term_idx+1], 
-                                  sign[0:term_idx+1], 
-                                  fxp=fxp, 
-                                  intwidth=intwidth, 
-                                  fracwidth=fracwidth, 
-                                  rounding=rounding, 
-                                  keepwidth=keepwidth)
-        appr_err = (appr_result - ref_result)/ref_result
-
-        min_err.append(appr_err.min().item())
-        max_err.append(appr_err.max().item())
-        avg_err.append(appr_err.mean().item())
-        rms_err.append(appr_err.mul(appr_err).mean().sqrt().item())
-
-    # this loop is for number of terms
-    for term_idx in range(max_extra_term):
-        temp_coeff = coeff[:]
-        temp_coeff.append(coeff[-1])
-        temp_power = power[:]
-        temp_power.append(power[-1])
-        temp_sign  = sign[:]
-        temp_sign.append(sign[-1])
-
-        temp_min_error = 0
-        temp_max_error = 0
-        temp_avg_error = 0
-        temp_rms_error = 10000000000
-
-        # this loop is for shifting offset of coeff
-        for coeff_idx in range(-max_shift, max_shift+1):
-            temp_coeff[-1] = coeff[-1] * (2**coeff_idx)
-
-            # this loop is for multiplication of var
-            for power_idx in range(max_power_diff):
-                temp_power[-1] = power[-1] + power_idx
-
-                # this loop is for accumulation of terms
-                for sign_idx in range(max_sign_change):
-                    temp_sign[-1]  = sign[-1] * (1-2*sign_idx)
-
-                    appr_result = Appr_Taylor(scale,
-                                              const, 
-                                              var, 
-                                              temp_coeff, 
-                                              temp_power, 
-                                              temp_sign, 
-                                              fxp=fxp, 
-                                              intwidth=intwidth, 
-                                              fracwidth=fracwidth, 
-                                              rounding=rounding, 
-                                              keepwidth=keepwidth)
-                    appr_err = (appr_result - ref_result)/ref_result
-
-                    if appr_err.mul(appr_err).mean().sqrt().item() < temp_rms_error:
-                        new_coeff = temp_coeff[-1]
-                        new_power = temp_power[-1]
-                        new_sign  = temp_sign[-1]
-                        temp_min_error = appr_err.min().item()
-                        temp_max_error = appr_err.max().item()
-                        temp_avg_error = appr_err.mean().item()
-                        temp_rms_error = appr_err.mul(appr_err).mean().sqrt().item()
-                        temp_all_error = appr_err
-
-        coeff.append(new_coeff)
-        power.append(new_power)
-        sign.append(new_sign)
-        min_err.append(temp_min_error)
-        max_err.append(temp_max_error)
-        avg_err.append(temp_avg_error)
-        rms_err.append(temp_rms_error)
-
-    # final check for useless round
-    if valid is True:
-        final_rms_err = rms_err[-1]
-        valid_length = len(rms_err)
-        temp_valid_length = len(rms_err)
+    for mu_value in mu_list:
+        data = data_gen(data_range=data_range, mu=mu_value, sigma=sigma).cuda()
+        data = Trunc(data, 
+                     intwidth=intwidth, 
+                     fracwidth=fracwidth, 
+                     rounding=rounding_var)
+        if func == "div":
+            ref_result = torch.div(1, data)
+        if func == "exp":
+            ref_result = torch.exp(data)
+        if func == "log":
+            ref_result = torch.log(data)
         
-        for term_idx in range(1, len(rms_err)):
-            if final_rms_err == rms_err[len(rms_err) - 1 - term_idx]:
-                temp_valid_length = len(rms_err) - term_idx
-                break
-        valid_length = temp_valid_length
+        for point in point_list:
+            coeff = torch.zeros(10).cuda()
+            if func == "exp":
+                coeff = torch.tensor([1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]).cuda()
+            elif func == "div":
+                coeff = torch.tensor([1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]).cuda()
+            elif func == "log":
+                coeff[0] = 0 - torch.log(torch.tensor([point])).item()
+                for idx in range(1, 9):
+                    coeff[idx] = 1/(point**idx)/idx
+                    
+            min_err = []
+            max_err = []
+            avg_err = []
+            rms_err = []
+            print("gaussian data mu=", mu_value, "Taylor expansion point=", point)
 
-        least_rms_err = rms_err[valid_length-1]
-        for term_idx in range(1, valid_length):
-            if least_rms_err >= rms_err[valid_length - 1 - term_idx]:
-                least_rms_err = rms_err[valid_length - 1 - term_idx]
-                temp_valid_length = valid_length - term_idx
-        valid_length = temp_valid_length
-        
-        coeff = coeff[0:valid_length]
-        power = power[0:valid_length]
-        sign  = sign[0:valid_length]
-        min_err = min_err[0:valid_length]
-        max_err = max_err[0:valid_length]
-        avg_err = avg_err[0:valid_length]
-        rms_err = rms_err[0:valid_length]
+            for idx in range(2, len(coeff)):
+                temp_coeff = coeff[0:idx]
+                if func == "exp":
+                    temp_scale = torch.exp(torch.tensor([point])).cuda()
+                    temp_var = data - point
+                elif func == "div":
+                    temp_scale = torch.tensor([point]).cuda()
+                    temp_var = point - data
+                elif func == "log":
+                    temp_scale = torch.tensor([-1.]).cuda()
+                    temp_var = point - data
+                
+                appr_result = MAC_Taylor(temp_scale, 
+                                         temp_coeff, 
+                                         temp_var, 
+                                         fxp=True, 
+                                         intwidth=intwidth, 
+                                         fracwidth=fracwidth, 
+                                         rounding_coeff=rounding_coeff, 
+                                         rounding_var=rounding_var, 
+                                         keepwidth=True)
+                error = (appr_result - ref_result) / ref_result
+                min_err.append(error.min())
+                max_err.append(error.max())
+                avg_err.append(error.mean())
+                rms_err.append(error.mul(error).mean().sqrt())
+            
+            # final check for useless round
+            if valid is True:
+                final_rms_err = rms_err[-1]
+                valid_length = len(rms_err)
+                temp_valid_length = len(rms_err)
 
-    print("Approximate Taylor series at point:", point)
-    print("final coeff", coeff)
-    print("final power", power)
-    print("final sign", sign)
+                for term_idx in range(1, len(rms_err)):
+                    if final_rms_err == rms_err[len(rms_err) - 1 - term_idx]:
+                        temp_valid_length = len(rms_err) - term_idx
+                        break
+                valid_length = temp_valid_length
 
-    print("min error:", ["{0:0.5f}".format(i) for i in min_err])
-    print("max error:", ["{0:0.5f}".format(i) for i in max_err])
-    print("avg error:", ["{0:0.5f}".format(i) for i in avg_err])
-    print("rms error:", ["{0:0.5f}".format(i) for i in rms_err])
-    print("")
-    
-    return coeff, power, sign, min_err, max_err, avg_err, rms_err
-    
-    
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# the following codes are used to generate the parameters used for exp
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-def exp_data_gen(distribution="uniform"):
-    # This is a function to generate data for chosing parameter for exp, which
-    # only cares about the data between 0 and 1, because data outside this can
-    # be scaled using LUT.
-    if distribution == "uniform":
-        data = torch.distributions.uniform.Uniform(torch.zeros([100000]), torch.ones([100000])).sample()
-    elif distribution == "middle":
-        mu = torch.ones([100000]).mul(0.5)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = data - data.floor()
-    elif distribution == "left":
-        mu = torch.ones([100000]).mul(0.25)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = data - data.floor()
-    elif distribution == "right":
-        mu = torch.ones([100000]).mul(0.75)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = data - data.floor()
-    else:
-        raise ValueError("Input distribution mode is not supported.")
-    return data
+                least_rms_err = rms_err[valid_length-1]
+                for term_idx in range(1, valid_length):
+                    if least_rms_err >= rms_err[valid_length - 1 - term_idx]:
+                        least_rms_err = rms_err[valid_length - 1 - term_idx]
+                        temp_valid_length = valid_length - term_idx
+                valid_length = temp_valid_length
 
-
-def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
-    # max number of extra terms besides the initial terms
-    max_extra_term = 10
-    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
-    max_shift = 3
-    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
-    max_power_diff = 2
-    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
-    max_sign_change = 2
-    
-    # define the floating-point input
-    data = exp_data_gen(distribution)
-    
-    # reference model
-    ref_result = torch.exp(data)
-
-    # approximate taylor series
-    point_list = [0.0, 0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875]
-
-    for point in point_list:
-        scale = torch.exp(torch.Tensor([point]))
-        const = torch.Tensor([1.])
-        var   = data - point
-        
-        coeff = [1/1, 1/2]
-        power = [  1,   2]
-        sign  = [  1,   1]
-        
-        coeff, power, sign, min_err, max_err, avg_err, rms_err = param_search(max_extra_term, 
-                                                                              max_shift, 
-                                                                              max_power_diff, 
-                                                                              max_sign_change, 
-                                                                              ref_result, 
-                                                                              point, 
-                                                                              scale, 
-                                                                              const, 
-                                                                              var, 
-                                                                              coeff, 
-                                                                              power, 
-                                                                              sign, 
-                                                                              fxp=True, 
-                                                                              intwidth=intwidth, 
-                                                                              fracwidth=fracwidth, 
-                                                                              rounding=rounding, 
-                                                                              keepwidth=keepwidth, 
-                                                                              valid=valid)
-        
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# the following codes are used to generate the parameters used for div
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-def div_data_gen(distribution="uniform"):
-    # This is a function to generate data for chosing parameter for div(y, x), which
-    # only cares about the x between 0.5 and 1. only scale is related to y.
-    if distribution == "uniform":
-        data = torch.distributions.uniform.Uniform(torch.zeros([100000])+0.5, torch.ones([100000])).sample()
-    elif distribution == "middle":
-        mu = torch.ones([100000]).mul(0.5)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "right":
-        mu = torch.ones([100000]).mul(0.25)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "left":
-        mu = torch.ones([100000]).mul(0.75)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    else:
-        raise ValueError("Input distribution mode is not supported.")
-    return data
-
-
-def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
-    # for div y/x, just need to approximate the 1/x with sum(-1*(x-1))^i
-    
-    # max number of extra terms besides the initial terms
-    max_extra_term = 2
-    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
-    max_shift = 3
-    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
-    max_power_diff = 2
-    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
-    max_sign_change = 2
-    
-    # define the floating-point input
-    data = div_data_gen(distribution)
-    
-    # reference model
-    ref_result = torch.div(1, data)
-
-    # approximate taylor series
-    point_list = [1.0]
-
-    for point in point_list:
-        scale = torch.Tensor([point])
-        const = torch.Tensor([1.])
-        var   = data - point
-        
-        coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
-        power = [  1,   2,   3,   4,   5,   6,   7,   8,   9]
-        sign  = [ -1,   1,  -1,   1,  -1,   1,  -1,   1,  -1]
-        
-        coeff, power, sign, min_err, max_err, avg_err, rms_err = param_search(max_extra_term, 
-                                                                              max_shift, 
-                                                                              max_power_diff, 
-                                                                              max_sign_change, 
-                                                                              ref_result, 
-                                                                              point, 
-                                                                              scale, 
-                                                                              const, 
-                                                                              var, 
-                                                                              coeff, 
-                                                                              power, 
-                                                                              sign, 
-                                                                              fxp=True, 
-                                                                              intwidth=intwidth, 
-                                                                              fracwidth=fracwidth, 
-                                                                              rounding=rounding, 
-                                                                              keepwidth=keepwidth, 
-                                                                              valid=valid)
-        
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# the following codes are used to generate the parameters used for log
-# this method is not working well for log, acuracy is too low
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-def log_data_gen(distribution="uniform"):
-    # This is a function to generate data for chosing parameter for log, which
-    # only cares about the data between 0 and 1, because log is only used after softmax.
-    if distribution == "uniform":
-        data = torch.distributions.uniform.Uniform(torch.zeros([100000])+0.5, torch.ones([100000])).sample()
-    elif distribution == "middle":
-        mu = torch.ones([100000]).mul(0.5)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "right":
-        mu = torch.ones([100000]).mul(0.25)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "left":
-        mu = torch.ones([100000]).mul(0.75)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    else:
-        raise ValueError("Input distribution mode is not supported.")
-    return data
-
-
-def log_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
-    # max number of extra terms besides the initial terms
-    max_extra_term = 1
-    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
-    max_shift = 3
-    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
-    max_power_diff = 2
-    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
-    max_sign_change = 2
-    
-    # define the floating-point input
-    data = log_data_gen(distribution)
-    
-    # reference model
-    ref_result = torch.log(data)
-
-    # approximate taylor series
-    point_list = [1.0]
-
-    for point in point_list:
-        scale = torch.Tensor([point])
-        const = torch.log(torch.Tensor([point]))
-        var   = data - point
-        print(scale, const)
-        coeff = [1/1, 1/2, 1/4, 1/4, 1/4, 1/8]
-        power = [  1,   2,   3,   4,   5,   6]
-        sign  = [  1,  -1,   1,  -1,   1,  -1]
-        
-        coeff, power, sign, min_err, max_err, avg_err, rms_err = param_search(max_extra_term, 
-                                                                              max_shift, 
-                                                                              max_power_diff, 
-                                                                              max_sign_change, 
-                                                                              ref_result, 
-                                                                              point, 
-                                                                              scale, 
-                                                                              const, 
-                                                                              var, 
-                                                                              coeff, 
-                                                                              power, 
-                                                                              sign, 
-                                                                              fxp=True, 
-                                                                              intwidth=intwidth, 
-                                                                              fracwidth=fracwidth, 
-                                                                              rounding=rounding, 
-                                                                              keepwidth=keepwidth, 
-                                                                              valid=valid)
-    
+                eff_coeff = coeff[0:valid_length]
+                min_err = min_err[0:valid_length]
+                max_err = max_err[0:valid_length]
+                avg_err = avg_err[0:valid_length]
+                rms_err = rms_err[0:valid_length]
+                
+            print("eff coeff:", ["{0:0.7f}".format(i) for i in eff_coeff])
+            print("min error:", ["{0:0.7f}".format(i) for i in min_err])
+            print("max error:", ["{0:0.7f}".format(i) for i in max_err])
+            print("avg error:", ["{0:0.7f}".format(i) for i in avg_err])
+            print("rms error:", ["{0:0.7f}".format(i) for i in rms_err])
+            print("")
