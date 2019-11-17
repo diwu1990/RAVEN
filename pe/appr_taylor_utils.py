@@ -436,11 +436,18 @@ def div_data_gen(distribution="uniform"):
     return data
 
 
+<<<<<<< HEAD
 def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
     # for div y/x, just need to approximate the 1/x with sum(-1*(x-1))^i
     
     # max number of extra terms besides the initial terms
     max_extra_term = 2
+=======
+
+def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
+    # max number of terms besides the constant
+    max_term = 7
+>>>>>>> 0bacd49524b12a0517008c32f0bc1f4f10e41ab2
     # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
     max_shift = 3
     # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
@@ -452,7 +459,7 @@ def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
     data = div_data_gen(distribution)
     
     # reference model
-    ref_result = torch.div(1, data)
+    ref_result = torch.exp(data)
 
     # approximate taylor series
     point_list = [1.0]
@@ -532,6 +539,7 @@ def log_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
     ref_result = torch.log(data)
     print(ref_result)
 
+<<<<<<< HEAD
     # approximate taylor series
     point_list = [1.0]
 
@@ -563,3 +571,5 @@ def log_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
                                                                               keepwidth=keepwidth, 
                                                                               valid=valid)
     
+=======
+>>>>>>> 0bacd49524b12a0517008c32f0bc1f4f10e41ab2
