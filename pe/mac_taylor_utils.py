@@ -7,8 +7,8 @@ def MAC_Taylor(scale,
                fxp=True, 
                intwidth=7, 
                fracwidth=8, 
-               rounding_coeff="ceil", 
-               rounding_var="floor", 
+               rounding_coeff="round", 
+               rounding_var="round", 
                keepwidth=True):
     """
     Calculate the result of approximate Taylor series.
