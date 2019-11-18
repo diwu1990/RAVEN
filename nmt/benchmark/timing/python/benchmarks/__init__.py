@@ -1,0 +1,7 @@
+from benchmarks.cpu_convnet_benchmark import CPUConvnets
+from benchmarks.cpu_lstm_benchmark import CPULSTMBench
+from benchmarks.cpu_nn_benchmark import CPUNNBench
+from benchmarks.cpu_reduce_benchmark import NumpyReduceComparison
+from benchmarks.cpu_unary_benchmark import CPUUnaryBench
+from benchmarks.cpu_unary_benchmark import NumpyUnaryComparison
+from benchmarks.cuda_lstm_benchmark import CUDALSTMBench
