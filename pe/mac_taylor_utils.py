@@ -15,7 +15,7 @@ def MAC_Taylor(scale,
     The results is calculated as:
     output = scale * (const + sum(coeff * var^power))
     
-    All inputs are tensors.
+    All inputs are tensors, except coeff, which is a list.
     
     Assume that there are N taylor terms, which is the length of coeff, power always goes from 0 to N-1.
     1) Tensor scale is calculated by shifting input or using very small LUT.
@@ -67,22 +67,17 @@ def MAC_Taylor(scale,
                     rounding = rounding_var)
 
         # coeff participates in accumulation, so it has format of (1, 2 * intwidth + 1, 2 * fracwidth)
-        coeff = Trunc(coeff, 
-                      intwidth = 2 * intwidth + 1, 
-                      fracwidth = 2 * fracwidth, 
-                      rounding = rounding_coeff)
+        coeff = [Trunc_val(i, intwidth = 2 * intwidth + 1, fracwidth = 2 * fracwidth, rounding = rounding_coeff) for i in coeff]
+        coeff[-1] = Trunc_val(coeff[-1], intwidth = intwidth, fracwidth = fracwidth, rounding = rounding_coeff)
         
         # calculate the first term
         mul_0 = var
-        mul_1 = Trunc(coeff[-1], 
-                      intwidth = intwidth, 
-                      fracwidth = fracwidth, 
-                      rounding = rounding_coeff)
+        mul_1 = coeff[-1]
         prod = mul_0.mul(mul_1)
         
         add_0 = coeff[-2]
         add_1 = prod
-        acc = add_0.add(add_1)
+        acc = add_1.add(add_0)
         
         # cumulate the rest terms
         for idx in range(0, len(coeff)-2):
@@ -95,7 +90,7 @@ def MAC_Taylor(scale,
 
             add_0 = coeff[-3 - idx]
             add_1 = prod
-            acc = add_0.add(add_1)
+            acc = add_1.add(add_0)
         
         mul_0 = scale
         mul_1 = Trunc(acc, 
@@ -136,7 +131,7 @@ def MAC_Taylor(scale,
         raise ValueError("Input fxp mode have to be of bool type.")
     
     
-def point_search(func="exp", uniform=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round"):
+def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round"):
     # choose data range according to function
     if func == "div":
         data_range = "0.5_1.0"
@@ -145,12 +140,12 @@ def point_search(func="exp", uniform=True, intwidth=7, fracwidth=8, valid=True, 
     if func == "exp":
         data_range = "0.0_1.0"
         # varying the Taylor expansion point
-        point_list = [0.0, 0.25, 0.500, 0.750, 1.]
+        point_list = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         # varying the distribution of data
         mu_list = [0.25, 0.5, 0.75]
     if func == "log":
         data_range = "0.5_1.0"
-        point_list = [0.500, 0.625, 0.750, 0.875, 1.]
+        point_list = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.]
         mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
     
     if uniform == True:
@@ -173,13 +168,13 @@ def point_search(func="exp", uniform=True, intwidth=7, fracwidth=8, valid=True, 
             ref_result = torch.log(data)
         
         for point in point_list:
-            coeff = torch.zeros(10).cuda()
+            coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
             if func == "exp":
-                coeff = torch.tensor([1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]).cuda()
+                coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
             elif func == "div":
-                coeff = torch.tensor([1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]).cuda()
+                coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
             elif func == "log":
-                coeff[0] = 0 - torch.log(torch.tensor([point])).item()
+                coeff[0] = 0 - math.log(point)
                 for idx in range(1, 9):
                     coeff[idx] = 1/(point**idx)/idx
                     
@@ -204,7 +199,7 @@ def point_search(func="exp", uniform=True, intwidth=7, fracwidth=8, valid=True, 
                 appr_result = MAC_Taylor(temp_scale, 
                                          temp_coeff, 
                                          temp_var, 
-                                         fxp=True, 
+                                         fxp=fxp, 
                                          intwidth=intwidth, 
                                          fracwidth=fracwidth, 
                                          rounding_coeff=rounding_coeff, 

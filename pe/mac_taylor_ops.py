@@ -1,10 +1,10 @@
 import torch
-from RAVEN.pe.mac_taylor_utils import Mac_Taylor
-from RAVEN.pe.appr_utils import RoundingNoGrad, Trunc
+import math
+from RAVEN.pe.mac_taylor_utils import MAC_Taylor
 
-class MacExp(torch.autograd.Function):
+class MACexp(torch.autograd.Function):
     """
-    MacExp is the approximate exponentiation with the gradient for the 
+    MACexp is the approximate exponentiation with the gradient for the 
     approximate exponentiation.
     The gradient is always floating-point, regardless of approximation or 
     not.
@@ -14,47 +14,28 @@ class MacExp(torch.autograd.Function):
     # Note that both forward and backward are @staticmethods
     @staticmethod
     def forward(ctx, x, 
-                bitwidth=16, 
-                distribution="uniform", 
+                cycle, 
+                intwidth=7, 
+                fracwidth=8, 
+                # distribution="uniform", # this param is currently not used
                 fxp=True, 
-                rounding="floor", 
-                keepwidth=True, 
+                rounding="round", 
+                keepwidth=False, 
                 appr_grad=False, 
                 fxp_grad=False):
         
-        # exp_coeff is the precise coefficient for exp, up to 10 tens are pre-stored
-        exp_coeff = torch.tensor([1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880])
-
-        # ctx is a context object that can be used to stash information
-        # for backward computation
-        ctx.save_for_backward(x, exp_coeff)
+        # coeff is the precise coefficient, up to 10 terms are pre-stored
+        ctx.coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
+        ctx.cycle = cycle
         
-        if bitwidth == 16:
-            ctx.intwidth=7
-            ctx.fracwidth=8
-        elif bitwidth == 12:
-            ctx.intwidth=5
-            ctx.fracwidth=6
-        elif bitwidth == 8:
-            ctx.intwidth=3
-            ctx.fracwidth=4
-        else:
-            raise ValueError("Input bitwidth is not supported yet.")
-            
-        # Here the length of three tuples (coeff, power, and sign) should be 
-        # the same
-        if distribution == "uniform":
-            # parameters for approximate polynomial in forward pass
-            ctx.coeff_fw = coeff_fw
-            ctx.power_fw = power_fw
-            ctx.sign_fw  = sign_fw
-            
-            # parameters for approximate polynomial in backward pass
-            ctx.coeff_bw = coeff_bw
-            ctx.power_bw = power_bw
-            ctx.sign_bw  = sign_bw
-        else:
-            raise ValueError("Input distribution is not supported yet.")
+        ctx.intwidth = intwidth
+        ctx.fracwidth = fracwidth
+        
+        # parameters for approximate polynomial in forward and backward pass
+        # both are zero because after changing floating to fixed point, the 
+        # center of data will not have so much influence. They are not used.
+        # ctx.point_fw = 0
+        # ctx.point_bw = 0
         
         ctx.fxp = fxp
         ctx.rounding = rounding
@@ -62,20 +43,24 @@ class MacExp(torch.autograd.Function):
         ctx.appr_grad = appr_grad
         ctx.fxp_grad = fxp_grad
         
-        scale = scale
-        const = const
-        var = x
-        output = Appr_Taylor(scale, 
-                             const, 
-                             var, 
-                             ctx.coeff_fw, 
-                             ctx.power_fw, 
-                             ctx.sign_fw, 
-                             fxp=ctx.fxp, 
-                             intwidth=ctx.intwidth, 
-                             fracwidth=ctx.fracwidth, 
-                             rounding=ctx.rounding, 
-                             keepwidth=ctx.keepwidth)
+        int_part = x.floor()
+        frac_part = x - int_part
+        scale = torch.exp(int_part)
+        var = frac_part
+        output = MAC_Taylor(scale, 
+                            ctx.coeff[0:ctx.cycle], 
+                            var, 
+                            fxp=ctx.fxp, 
+                            intwidth=ctx.intwidth, 
+                            fracwidth=ctx.fracwidth, 
+                            rounding_coeff="round", 
+                            rounding_var=ctx.rounding, 
+                            keepwidth=True)
+        
+        # ctx is a context object that can be used to stash information
+        # for backward computation
+        ctx.save_for_backward(x)
+        
         return output
     
     @staticmethod
@@ -86,29 +71,315 @@ class MacExp(torch.autograd.Function):
         # ignored, the return statement is simple even when the function has
         # optional inputs.
         x, = ctx.saved_tensors
-        grad_input = None
+        grad_x = None
 
         # Calculate the gradient according to the flag
         if ctx.appr_grad is True:
-            grad = Appr_Taylor(scale, 
-                               const, 
-                               var, 
-                               ctx.coeff_bw, 
-                               ctx.power_bw, 
-                               ctx.sign_bw, 
-                               fxp=ctx.fxp_grad, 
-                               intwidth=ctx.intwidth, 
-                               fracwidth=ctx.fracwidth, 
-                               rounding=ctx.rounding, 
-                               keepwidth=ctx.keepwidth)
-            grad_input = grad_output * grad
+            int_part = x.floor()
+            frac_part = x - int_part
+            scale = torch.exp(int_part)
+            var = frac_part
+            grad = MAC_Taylor(scale, 
+                              ctx.coeff[0:ctx.cycle], 
+                              var, 
+                              fxp=ctx.fxp_grad, 
+                              intwidth=ctx.intwidth, 
+                              fracwidth=ctx.fracwidth, 
+                              rounding_coeff="round", 
+                              rounding_var=ctx.rounding, 
+                              keepwidth=True)
+            grad_x = grad_output * grad
         elif ctx.appr_grad is False:
-            grad_input = grad_output * torch.exp(x)
+            grad_x = grad_output * torch.exp(x)
         else:
             raise ValueError("Input appr_grad need to be of bool type.")
             
         # We return as many input gradients as there were arguments.
         # Gradients of non-Tensor arguments to forward must be None.
-        return grad_input, None, None, None, None, None, None, None
+        return grad_x, None, None, None, None, None, None, None, None
 
     
+class MACdiv(torch.autograd.Function):
+    """
+    MACdiv is the approximate exponentiation with the gradient for the 
+    approximate division (y/x).
+    The gradient is always floating-point, regardless of approximation or 
+    not.
+    """
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    def forward(ctx, y, x, 
+                cycle, 
+                intwidth=7, 
+                fracwidth=8, 
+                # distribution="uniform", # this param is currently not used
+                fxp=True, 
+                rounding="round", 
+                keepwidth=False, 
+                appr_grad=False, 
+                fxp_grad=False):
+        
+        # coeff is the precise coefficient, up to 10 terms are pre-stored
+        ctx.coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
+        ctx.cycle = cycle
+        
+        ctx.intwidth = intwidth
+        ctx.fracwidth = fracwidth
+        
+        # parameters for approximate polynomial in forward and backward pass
+        # both are zero because after changing floating to fixed point, the 
+        # center of data will not have so much influence. They are not used.
+        # ctx.point_fw = 0
+        # ctx.point_bw = 0
+        
+        ctx.fxp = fxp
+        ctx.rounding = rounding
+        ctx.keepwidth = keepwidth
+        ctx.appr_grad = appr_grad
+        ctx.fxp_grad = fxp_grad
+        
+        scale = y >> (torch.log2(x).floor() + 1)
+        var = 1 - (x >> (torch.log2(x).floor() + 1))
+        output = MAC_Taylor(scale, 
+                            ctx.coeff[0:ctx.cycle], 
+                            var, 
+                            fxp=ctx.fxp, 
+                            intwidth=ctx.intwidth, 
+                            fracwidth=ctx.fracwidth, 
+                            rounding_coeff="round", 
+                            rounding_var=ctx.rounding, 
+                            keepwidth=True)
+        
+        # ctx is a context object that can be used to stash information
+        # for backward computation
+        ctx.save_for_backward(y, x)
+        
+        return output
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        y, x = ctx.saved_tensors
+        grad_y = None
+        grad_x = None
+
+        # Calculate the gradient according to the flag
+        grad_y = grad_output * torch.div(1, x)
+        grad_x = grad_output * (0 - torch.div(y, x.mul(x)))
+            
+        # We return as many input gradients as there were arguments.
+        # Gradients of non-Tensor arguments to forward must be None.
+        return grad_y, grad_x, None, None, None, None, None, None, None, None
+
+
+class MAClog(torch.autograd.Function):
+    """
+    MAClog is the approximate logarithm with the gradient for the 
+    approximate.
+    The gradient is always floating-point, regardless of approximation or 
+    not.
+    A precise exponentiation example can be found here:
+    https://pytorch.org/docs/stable/_modules/torch/autograd/function.html
+    """
+    # Note that both forward and backward are @staticmethods
+    @staticmethod
+    def forward(ctx, x, 
+                cycle, 
+                intwidth=7, 
+                fracwidth=8, 
+                # distribution="uniform", # this param is currently not used
+                fxp=True, 
+                rounding="round", 
+                keepwidth=False, 
+                appr_grad=False, 
+                fxp_grad=False):
+        
+        # coeff is the precise coefficient for exp, up to 10 terms are pre-stored
+        coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
+        point = 0.75
+        coeff[0] = 0 - math.log(point)
+        for idx in range(1, 9):
+            coeff[idx] = 1/(point**idx)/idx
+            
+        ctx.coeff = coeff
+        ctx.cycle = cycle
+        
+        ctx.intwidth = intwidth
+        ctx.fracwidth = fracwidth
+        
+        # parameters for approximate polynomial in forward and backward pass
+        # both are zero because after changing floating to fixed point, the 
+        # center of data will not have so much influence. They are not used.
+        # ctx.point_fw = 0
+        # ctx.point_bw = 0
+        
+        ctx.fxp = fxp
+        ctx.rounding = rounding
+        ctx.keepwidth = keepwidth
+        ctx.appr_grad = appr_grad
+        ctx.fxp_grad = fxp_grad
+        
+        scale = 0 - torch.ones_like(x)
+        var = point - (x >> (torch.log2(x).floor() + 1))
+        output = MAC_Taylor(scale, 
+                            ctx.coeff[0:ctx.cycle], 
+                            var, 
+                            fxp=ctx.fxp, 
+                            intwidth=ctx.intwidth, 
+                            fracwidth=ctx.fracwidth, 
+                            rounding_coeff="round", 
+                            rounding_var=ctx.rounding, 
+                            keepwidth=True)
+        
+        output = output + (torch.log2(x).floor() + 1) * math.log(2.)
+        # ctx is a context object that can be used to stash information
+        # for backward computation
+        ctx.save_for_backward(x)
+        
+        return output
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        # This is a pattern that is very convenient - at the top of backward
+        # unpack saved_tensors and initialize all gradients w.r.t. inputs to
+        # None. Thanks to the fact that additional trailing Nones are
+        # ignored, the return statement is simple even when the function has
+        # optional inputs.
+        x, = ctx.saved_tensors
+        grad_x = None
+
+        # Calculate the gradient according to the flag
+        grad_x = grad_output * torch.div(1, x)
+        
+        # We return as many input gradients as there were arguments.
+        # Gradients of non-Tensor arguments to forward must be None.
+        return grad_x, None, None, None, None, None, None, None, None
+
+
+def MACsigmoid(x, 
+               cycle=8, 
+               intwidth=7, 
+               fracwidth=8, 
+               fxp=True, 
+               rounding="round", 
+               keepwidth=False, 
+               appr_grad=False, 
+               fxp_grad=False):
+    exp_val = MACexp.apply(-x, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    div_val = MACdiv.apply(torch.ones_like(exp_val), 
+                           1. + exp_val, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    return div_val
+
+
+def MACtanh(x, 
+            cycle=8, 
+            intwidth=7, 
+            fracwidth=8, 
+            fxp=True, 
+            rounding="round", 
+            keepwidth=False, 
+            appr_grad=False, 
+            fxp_grad=False):
+    exp_val = MACexp.apply(2*x, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    div_val = MACdiv.apply(exp_val - 1., 
+                           exp_val + 1., 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    return div_val
+
+
+def MACsoftmax(x, 
+               cycle=8, 
+               intwidth=7, 
+               fracwidth=8, 
+               fxp=True, 
+               rounding="round", 
+               keepwidth=False, 
+               appr_grad=False, 
+               fxp_grad=False):
+    exp_val = MACexp.apply(x, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    sum_val = exp_val.sum()
+    div_val = MACdiv.apply(exp_val, 
+                           sum_val, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    return div_val
+
+
+def MAClogsoftmax(x, 
+                  cycle=8, 
+                  intwidth=7, 
+                  fracwidth=8, 
+                  fxp=True, 
+                  rounding="round", 
+                  keepwidth=False, 
+                  appr_grad=False, 
+                  fxp_grad=False):
+    softmax_val = MACsoftmax(x, 
+                             cycle, 
+                             intwidth, 
+                             fracwidth, 
+                             fxp, 
+                             rounding, 
+                             keepwidth, 
+                             appr_grad, 
+                             fxp_grad)
+    log_val = MAClog.apply(softmax_val, 
+                           cycle, 
+                           intwidth, 
+                           fracwidth, 
+                           fxp, 
+                           rounding, 
+                           keepwidth, 
+                           appr_grad, 
+                           fxp_grad)
+    return log_val
+

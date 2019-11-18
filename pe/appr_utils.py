@@ -1,4 +1,5 @@
 import torch
+import math
 import matplotlib.pyplot as plt
 
 class RoundingNoGrad(torch.autograd.Function):
@@ -18,7 +19,7 @@ class RoundingNoGrad(torch.autograd.Function):
         elif mode == "ceil":
             return input.ceil()
         else:
-            raise ValueError("Input rounding mode is not supported.")
+            raise ValueError("Input rounding is not supported.")
     
     # This function has only a single output, so it gets only one gradient
     @staticmethod
@@ -37,6 +38,23 @@ def Trunc(input, intwidth=7, fracwidth=8, rounding="floor"):
     return RoundingNoGrad.apply(input.mul(scale), rounding).clamp(min_val, max_val).div(scale)
     
     
+def Trunc_val(input, intwidth=7, fracwidth=8, rounding="round"):
+    """
+    Trunc_val is an operation to convert one single value to format (1, intwidth, fracwidth).
+    """
+    scale = 2**fracwidth
+    max_val = (2**(intwidth + fracwidth) - 1)
+    min_val = 0 - (2**(intwidth + fracwidth))
+    if rounding == "round":
+        return max(min(round(input*scale), max_val), min_val)/scale
+    elif rounding == "floor":
+        return max(min(math.floor(input*scale), max_val), min_val)/scale
+    elif rounding == "ceil":
+        return max(min(math.ceil(input*scale), max_val), min_val)/scale
+    else:
+        raise ValueError("Input rounding is not supported.")
+
+        
 def data_gen(data_range="0.0_1.0", mu=0.5, sigma = 0.3):
     # This is a function to generate data
     if data_range == "0.0_1.0":
