@@ -131,7 +131,7 @@ def MAC_Taylor(scale,
         raise ValueError("Input fxp mode have to be of bool type.")
     
     
-def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round"):
+def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round", keepwidth=True):
     # choose data range according to function
     if func == "div":
         data_range = "0.5_1.0"
@@ -140,12 +140,14 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
     if func == "exp":
         data_range = "0.0_1.0"
         # varying the Taylor expansion point
-        point_list = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        # point_list = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+        point_list = [0.00, 0.25, 0.05, 0.75, 1.00]
         # varying the distribution of data
         mu_list = [0.25, 0.5, 0.75]
     if func == "log":
         data_range = "0.5_1.0"
-        point_list = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.]
+        # point_list = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.]
+        point_list = [0.500, 0.625, 0.750, 0.875, 1.00]
         mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
     
     if uniform == True:
@@ -156,10 +158,16 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
         
     for mu_value in mu_list:
         data = data_gen(data_range=data_range, mu=mu_value, sigma=sigma).cuda()
-        data = Trunc(data, 
-                     intwidth=intwidth, 
-                     fracwidth=fracwidth, 
-                     rounding=rounding_var)
+        if func == "log":
+            data = Trunc(data, 
+                         intwidth=intwidth, 
+                         fracwidth=fracwidth, 
+                         rounding="floor")
+        else:
+            data = Trunc(data, 
+                         intwidth=intwidth, 
+                         fracwidth=fracwidth, 
+                         rounding=rounding_var)
         if func == "div":
             ref_result = torch.div(1, data)
         if func == "exp":
@@ -204,13 +212,14 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
                                          fracwidth=fracwidth, 
                                          rounding_coeff=rounding_coeff, 
                                          rounding_var=rounding_var, 
-                                         keepwidth=True)
+                                         keepwidth=keepwidth)
                 error = (appr_result - ref_result) / ref_result
                 min_err.append(error.min())
                 max_err.append(error.max())
                 avg_err.append(error.mean())
                 rms_err.append(error.mul(error).mean().sqrt())
             
+            eff_coeff = coeff[:]
             # final check for useless round
             if valid is True:
                 final_rms_err = rms_err[-1]
@@ -236,9 +245,9 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
                 avg_err = avg_err[0:valid_length]
                 rms_err = rms_err[0:valid_length]
                 
-            print("eff coeff:", ["{0:0.7f}".format(i) for i in eff_coeff])
-            print("min error:", ["{0:0.7f}".format(i) for i in min_err])
-            print("max error:", ["{0:0.7f}".format(i) for i in max_err])
-            print("avg error:", ["{0:0.7f}".format(i) for i in avg_err])
-            print("rms error:", ["{0:0.7f}".format(i) for i in rms_err])
+            print("eff coeff:", ["{0:0.10f}".format(i) for i in eff_coeff])
+            print("min error:", ["{0:0.10f}".format(i) for i in min_err])
+            print("max error:", ["{0:0.10f}".format(i) for i in max_err])
+            print("avg error:", ["{0:0.10f}".format(i) for i in avg_err])
+            print("rms error:", ["{0:0.10f}".format(i) for i in rms_err])
             print("")

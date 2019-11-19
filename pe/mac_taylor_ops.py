@@ -323,6 +323,7 @@ def MACtanh(x,
 
 
 def MACsoftmax(x, 
+               dim=0, 
                cycle=8, 
                intwidth=7, 
                fracwidth=8, 
@@ -340,7 +341,7 @@ def MACsoftmax(x,
                            keepwidth, 
                            appr_grad, 
                            fxp_grad)
-    sum_val = exp_val.sum()
+    sum_val = exp_val.sum(dim=dim, keepdim=True)
     div_val = MACdiv.apply(exp_val, 
                            sum_val, 
                            cycle, 
@@ -355,6 +356,7 @@ def MACsoftmax(x,
 
 
 def MAClogsoftmax(x, 
+                  dim=0, 
                   cycle=8, 
                   intwidth=7, 
                   fracwidth=8, 
@@ -364,6 +366,7 @@ def MAClogsoftmax(x,
                   appr_grad=False, 
                   fxp_grad=False):
     softmax_val = MACsoftmax(x, 
+                             dim, 
                              cycle, 
                              intwidth, 
                              fracwidth, 
