@@ -134,7 +134,7 @@ def MAC_Taylor(scale,
 def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round", keepwidth=True):
     output_file = func + "_rms_error"
     if fxp is True:
-        output_file = output_file + "_fxp"
+        output_file = output_file + "_fxp_" + str(fracwidth)
     else:
         output_file = output_file + "_flp"
         
