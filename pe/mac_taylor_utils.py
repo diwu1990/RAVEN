@@ -167,7 +167,7 @@ def point_search(func="exp", fxp=True, intwidth=7, fracwidth=8, valid=True, roun
             mu_list = [0.5]
             f.write("uniform,\n")
         else:
-            sigma = 0.2
+            sigma = 0.1
             f.write("guassian,\n")
 
         for mu_value in mu_list:
