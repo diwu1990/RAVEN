@@ -120,7 +120,12 @@ class MACdiv(torch.autograd.Function):
                 fxp_grad=False):
         
         # coeff is the precise coefficient, up to 10 terms are pre-stored
-        ctx.coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
+        coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
+        point = 0.75
+        for idx in range(0, 10):
+            coeff[idx] = 1/(point**(idx+1))
+            
+        ctx.coeff = coeff
         ctx.cycle = cycle
         
         ctx.intwidth = intwidth
@@ -139,7 +144,7 @@ class MACdiv(torch.autograd.Function):
         ctx.fxp_grad = fxp_grad
         
         scale = y >> (torch.log2(x).floor() + 1)
-        var = 1 - (x >> (torch.log2(x).floor() + 1))
+        var = point - (x >> (torch.log2(x).floor() + 1))
         output = MAC_Taylor(scale, 
                             ctx.coeff[0:ctx.cycle], 
                             var, 
