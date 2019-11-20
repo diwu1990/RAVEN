@@ -131,17 +131,12 @@ def MAC_Taylor(scale,
         raise ValueError("Input fxp mode have to be of bool type.")
     
     
-def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round", keepwidth=True):
+def point_search(func="exp", fxp=True, intwidth=7, fracwidth=8, valid=True, rounding_coeff="round", rounding_var="round", keepwidth=True):
     output_file = func + "_rms_error"
     if fxp is True:
         output_file = output_file + "_fxp_" + str(fracwidth)
     else:
         output_file = output_file + "_flp"
-        
-    if uniform is True:
-        output_file = output_file + "_uniform"
-    else:
-        output_file = output_file + "_guassian"
         
     output_file = output_file + ".csv"
     
@@ -151,7 +146,7 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
     # choose data range according to function
     if func == "div":
         data_range = "0.5_1.0"
-        point_list = [1.]
+        point_list = [0.500, 0.625, 0.750, 0.875, 1.00]
         mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
     if func == "exp":
         data_range = "0.0_1.0"
@@ -166,117 +161,121 @@ def point_search(func="exp", uniform=True, fxp=True, intwidth=7, fracwidth=8, va
         point_list = [0.500, 0.625, 0.750, 0.875, 1.00]
         mu_list = [i / 2 + 0.5 for i in [0.25, 0.5, 0.75]]
     
-    if uniform == True:
-        sigma = 2
-        mu_list = [0.5]
-        f.write("uniform, \n")
-    elif uniform == False:
-        sigma = 0.2
-        f.write("guassian, \n")
-    
-    for mu_value in mu_list:
-        f.write("mu, "+str(mu_value)+",\n")
-
-        data = data_gen(data_range=data_range, mu=mu_value, sigma=sigma).to(device)
-        if func == "log":
-            data = Trunc(data, 
-                         intwidth=intwidth, 
-                         fracwidth=fracwidth, 
-                         rounding="floor")
+    for distribution in range(0, 2):
+        if distribution == 1:
+            sigma = 2
+            mu_list = [0.5]
+            f.write("uniform,\n")
         else:
-            data = Trunc(data, 
-                         intwidth=intwidth, 
-                         fracwidth=fracwidth, 
-                         rounding=rounding_var)
-        if func == "div":
-            ref_result = torch.div(1, data)
-        if func == "exp":
-            ref_result = torch.exp(data)
-        if func == "log":
-            ref_result = torch.log(data)
-        
-        for point in point_list:
-            f.write("point, "+str(point)+",\n")
+            sigma = 0.2
+            f.write("guassian,\n")
+
+        for mu_value in mu_list:
+            f.write("mu, "+str(mu_value)+",\n")
+
+            data = data_gen(data_range=data_range, mu=mu_value, sigma=sigma).to(device)
             
-            coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
+            if func == "log":
+                data = Trunc(data, 
+                             intwidth=intwidth, 
+                             fracwidth=fracwidth, 
+                             rounding="floor")
+            else:
+                data = Trunc(data, 
+                             intwidth=intwidth, 
+                             fracwidth=fracwidth, 
+                             rounding=rounding_var)
+            if func == "div":
+                ref_result = torch.div(1, data)
             if func == "exp":
-                coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
-            elif func == "div":
+                ref_result = torch.exp(data)
+            if func == "log":
+                ref_result = torch.log(data)
+
+            for point in point_list:
+                f.write("point, "+str(point)+",\n")
+
                 coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
-            elif func == "log":
-                coeff[0] = 0 - math.log(point)
-                for idx in range(1, 9):
-                    coeff[idx] = 1/(point**idx)/idx
-                    
-            min_err = []
-            max_err = []
-            avg_err = []
-            rms_err = []
-            print("gaussian data mu=", mu_value, "Taylor expansion point=", point)
-
-            for idx in range(2, len(coeff)):
-                temp_coeff = coeff[0:idx]
                 if func == "exp":
-                    temp_scale = torch.exp(torch.tensor([point])).to(device)
-                    temp_var = data - point
+                    coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
                 elif func == "div":
-                    temp_scale = torch.tensor([point]).to(device)
-                    temp_var = point - data
+                    for idx in range(0, 10):
+                        coeff[idx] = 1/(point**(idx+1))
                 elif func == "log":
-                    temp_scale = torch.tensor([-1.]).to(device)
-                    temp_var = point - data
-                
-                appr_result = MAC_Taylor(temp_scale, 
-                                         temp_coeff, 
-                                         temp_var, 
-                                         fxp=fxp, 
-                                         intwidth=intwidth, 
-                                         fracwidth=fracwidth, 
-                                         rounding_coeff=rounding_coeff, 
-                                         rounding_var=rounding_var, 
-                                         keepwidth=keepwidth)
-                error = (appr_result - ref_result) / ref_result
-                min_err.append(error.min())
-                max_err.append(error.max())
-                avg_err.append(error.mean())
-                rms_err.append(error.mul(error).mean().sqrt())
-            
-            eff_coeff = coeff[:]
-            # final check for useless round
-            if valid is True:
-                final_rms_err = rms_err[-1]
-                valid_length = len(rms_err)
-                temp_valid_length = len(rms_err)
+                    coeff[0] = 0 - math.log(point)
+                    for idx in range(1, 9):
+                        coeff[idx] = 1/(point**idx)/idx
+                    print(coeff)
 
-                for term_idx in range(1, len(rms_err)):
-                    if final_rms_err == rms_err[len(rms_err) - 1 - term_idx]:
-                        temp_valid_length = len(rms_err) - term_idx
-                        break
-                valid_length = temp_valid_length
+                min_err = []
+                max_err = []
+                avg_err = []
+                rms_err = []
+                print("gaussian data mu=", mu_value, "Taylor expansion point=", point)
 
-                least_rms_err = rms_err[valid_length-1]
-                for term_idx in range(1, valid_length):
-                    if least_rms_err >= rms_err[valid_length - 1 - term_idx]:
-                        least_rms_err = rms_err[valid_length - 1 - term_idx]
-                        temp_valid_length = valid_length - term_idx
-                valid_length = temp_valid_length
+                for idx in range(2, len(coeff)):
+                    temp_coeff = coeff[0:idx]
+                    if func == "exp":
+                        temp_scale = torch.exp(torch.tensor([point])).to(device)
+                        temp_var = data - point
+                    elif func == "div":
+                        temp_scale = torch.tensor([1.]).to(device)
+                        temp_var = point - data
+                    elif func == "log":
+                        temp_scale = torch.tensor([-1.]).to(device)
+                        temp_var = point - data
 
-                eff_coeff = coeff[0:valid_length]
-                min_err = min_err[0:valid_length]
-                max_err = max_err[0:valid_length]
-                avg_err = avg_err[0:valid_length]
-                rms_err = rms_err[0:valid_length]
-            
-            for i in rms_err:
-                f.write(str(i.item())+", ")
-            
+                    appr_result = MAC_Taylor(temp_scale, 
+                                             temp_coeff, 
+                                             temp_var, 
+                                             fxp=fxp, 
+                                             intwidth=intwidth, 
+                                             fracwidth=fracwidth, 
+                                             rounding_coeff=rounding_coeff, 
+                                             rounding_var=rounding_var, 
+                                             keepwidth=keepwidth)
+                    error = (appr_result - ref_result) / ref_result
+                    min_err.append(error.min())
+                    max_err.append(error.max())
+                    avg_err.append(error.mean())
+                    rms_err.append(error.mul(error).mean().sqrt())
+
+                eff_coeff = coeff[:]
+                # final check for useless round
+                if valid is True:
+                    final_rms_err = rms_err[-1]
+                    valid_length = len(rms_err)
+                    temp_valid_length = len(rms_err)
+
+                    for term_idx in range(1, len(rms_err)):
+                        if final_rms_err == rms_err[len(rms_err) - 1 - term_idx]:
+                            temp_valid_length = len(rms_err) - term_idx
+                            break
+                    valid_length = temp_valid_length
+
+                    least_rms_err = rms_err[valid_length-1]
+                    for term_idx in range(1, valid_length):
+                        if least_rms_err >= rms_err[valid_length - 1 - term_idx]:
+                            least_rms_err = rms_err[valid_length - 1 - term_idx]
+                            temp_valid_length = valid_length - term_idx
+                    valid_length = temp_valid_length
+
+                    eff_coeff = coeff[0:valid_length]
+                    min_err = min_err[0:valid_length]
+                    max_err = max_err[0:valid_length]
+                    avg_err = avg_err[0:valid_length]
+                    rms_err = rms_err[0:valid_length]
+
+                for i in rms_err:
+                    f.write(str(i.item())+", ")
+
+                f.write("\n")
+
+                print("eff coeff:", ["{0:0.10f}".format(i) for i in eff_coeff])
+                print("min error:", ["{0:0.10f}".format(i) for i in min_err])
+                print("max error:", ["{0:0.10f}".format(i) for i in max_err])
+                print("avg error:", ["{0:0.10f}".format(i) for i in avg_err])
+                print("rms error:", ["{0:0.10f}".format(i) for i in rms_err])
+                print("")
+
             f.write("\n")
-            
-            print("eff coeff:", ["{0:0.10f}".format(i) for i in eff_coeff])
-            print("min error:", ["{0:0.10f}".format(i) for i in min_err])
-            print("max error:", ["{0:0.10f}".format(i) for i in max_err])
-            print("avg error:", ["{0:0.10f}".format(i) for i in avg_err])
-            print("rms error:", ["{0:0.10f}".format(i) for i in rms_err])
-            print("")
-            
-        f.write("\n")
