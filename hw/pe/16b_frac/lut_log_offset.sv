@@ -1,7 +1,7 @@
 module lut_log_offset (
     input logic clk,
     input logic rst_n,
-    input logic [3:0] shift_offset,
+    input logic [4:0] shift_offset,
     output logic [39:0] log_offset
 );
     
