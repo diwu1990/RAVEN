@@ -23,7 +23,7 @@ module uno (
 
 logic [`MAC_BW-1 : 0] x_norm;
 logic [3 : 0] x_int;
-logic [7 : 0] x_int;
+logic [7 : 0] x_frac;
 logic [`MAC_BW-1 : 0] exp_scale;
 logic [`MAC_BW-1 : 0] point;
 logic [`MAC_BW-1 : 0] point_sub_x;
