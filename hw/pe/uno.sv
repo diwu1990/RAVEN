@@ -47,10 +47,14 @@ assign x_norm = X << shiftx;
 
 assign point_sub_x = point - x_norm;
 
-lut_exp_scale U_lut_exp_scale(.exp_int(x_int), 
+lut_exp_scale U_lut_exp_scale(.clk(clk),
+                              .rst_n(rst_n), 
+                              .exp_int(x_int), 
                               .exp_scale(exp_scale));
 
-lut_log_offset U_lut_log_offset(.shift_offset(shiftx), 
+lut_log_offset U_lut_log_offset(.clk(clk),
+                                .rst_n(rst_n), 
+                                .shift_offset(shiftx), 
                                 .log_offset(log_offset));
 
 priority_enc_12 U_priority_enc_12(.in(X),
