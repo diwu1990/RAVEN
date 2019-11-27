@@ -33,7 +33,6 @@ logic [2*`MAC_BW-1 : 0] log_offset;
 logic [2*`MAC_BW-1 : 0] offset;
 
 assign x_int = X[11 : 8];
-assign exp_int = X[11 : 8];
 
 assign x_norm = X << shiftx;
 
@@ -60,8 +59,8 @@ assign point  = (op == 2'b01) ? 12'b000011000000 : // div: 0.75
                 (op == 2'b10) ? 12'b000000000000 : // exp: 0
                 (op == 2'b11) ? 12'b000011000000 : {`MAC_BW{1'b0}} ; // log: 0.75
 
-assign var_x    = (op == 2'b01) ? point_sub_x : // div: POINT - x_norm
-                (op == 2'b10) ? {4{x[11]}, x_frac[7:0]}  : // exp: X_frac
+assign var_x  = (op == 2'b01) ? point_sub_x : // div: POINT - x_norm
+                (op == 2'b10) ? {4{x[11]}}, x_frac[7:0]} : // exp: X_frac
                 (op == 2'b11) ? point_sub_x : {`MAC_BW{1'b0}} ; // log: POINT - x_norm  
 
 mac U_mac(.clk(clk),
