@@ -1,0 +1,109 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : uno
+Version: P-2019.03
+Date   : Wed Nov 27 14:42:45 2019
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: X[3] (input port clocked by clk)
+  Endpoint: U_mac/oC_reg[34]
+            (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  uno                TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 f
+  X[3] (in)                                0.00       0.25 f
+  U4262/ZN (IND3D4BWP)                     0.05       0.30 f
+  U4258/ZN (ND2D4BWP)                      0.03       0.33 r
+  U4154/ZN (IND4D1BWP)                     0.05       0.38 f
+  U4152/ZN (CKND2BWP)                      0.04       0.42 r
+  U4151/Z (OR3D4BWP)                       0.06       0.48 r
+  U2045/ZN (INVD6BWP)                      0.02       0.50 f
+  U3620/ZN (ND2D8BWP)                      0.02       0.51 r
+  U4110/Z (OA21D4BWP)                      0.05       0.56 r
+  U3881/ZN (OAI211D4BWP)                   0.04       0.60 f
+  U2091/ZN (ND2D4BWP)                      0.03       0.63 r
+  U3332/ZN (INVD4BWP)                      0.01       0.64 f
+  U4340/Z (AO211D4BWP)                     0.12       0.76 f
+  U2466/ZN (CKND6BWP)                      0.02       0.78 r
+  U4410/Z (OR3D4BWP)                       0.05       0.83 r
+  U3590/ZN (INVD4BWP)                      0.02       0.85 f
+  U1997/ZN (NR3D3BWP)                      0.03       0.88 r
+  U5091/Z (XOR3D2BWP)                      0.11       0.99 f
+  U4202/ZN (OAI21D4BWP)                    0.04       1.03 r
+  U3297/ZN (XNR2D1BWP)                     0.08       1.10 f
+  U6284/ZN (XNR2D2BWP)                     0.09       1.19 r
+  U6385/ZN (CKND2D4BWP)                    0.03       1.22 f
+  U3323/ZN (ND2D3BWP)                      0.02       1.24 r
+  U3321/Z (XOR4D1BWP)                      0.15       1.39 f
+  U4145/ZN (CKND4BWP)                      0.04       1.43 r
+  U4084/ZN (OAI21D2BWP)                    0.03       1.46 f
+  U2937/ZN (ND2D2BWP)                      0.02       1.48 r
+  U4111/ZN (IOA21D2BWP)                    0.05       1.53 r
+  U4112/Z (XOR4D1BWP)                      0.13       1.67 r
+  U4355/Z (CKXOR2D2BWP)                    0.09       1.76 f
+  U4179/ZN (CKND6BWP)                      0.03       1.79 r
+  U4174/ZN (OAI21D4BWP)                    0.02       1.81 f
+  U2728/ZN (ND2D4BWP)                      0.02       1.84 r
+  U4173/Z (XOR4D1BWP)                      0.15       1.98 f
+  U4334/ZN (CKND2BWP)                      0.03       2.01 r
+  U4333/Z (XOR4D1BWP)                      0.15       2.16 f
+  U4330/Z (CKXOR2D2BWP)                    0.08       2.23 r
+  U3266/ZN (XNR2D1BWP)                     0.09       2.32 f
+  U3355/ZN (OAI33D4BWP)                    0.16       2.48 r
+  U4249/ZN (OAI21D4BWP)                    0.03       2.50 f
+  U4160/Z (AN2D4BWP)                       0.04       2.55 f
+  U1805/ZN (ND2D3BWP)                      0.02       2.56 r
+  U4157/Z (AN3D4BWP)                       0.06       2.62 r
+  U4159/Z (XOR4D2BWP)                      0.15       2.77 f
+  U1814/ZN (DCCKND4BWP)                    0.03       2.80 r
+  U3265/Z (XOR2D1BWP)                      0.08       2.88 f
+  U3264/Z (CKXOR2D2BWP)                    0.08       2.97 f
+  U2652/ZN (CKND4BWP)                      0.03       2.99 r
+  U3429/ZN (CKND2D8BWP)                    0.02       3.01 f
+  U4277/Z (OR3D4BWP)                       0.08       3.10 f
+  U4222/ZN (ND2D4BWP)                      0.03       3.12 r
+  U2293/ZN (INVD3BWP)                      0.02       3.14 f
+  U2236/ZN (ND3D4BWP)                      0.02       3.16 r
+  U4412/ZN (AOI31D4BWP)                    0.04       3.20 f
+  U4411/ZN (AOI31D4BWP)                    0.06       3.26 r
+  U4216/ZN (OAI21D4BWP)                    0.04       3.31 f
+  U3283/ZN (CKND6BWP)                      0.03       3.33 r
+  U2051/ZN (ND2D2BWP)                      0.02       3.35 f
+  U3908/ZN (IND2D4BWP)                     0.05       3.41 f
+  U3244/ZN (CKND4BWP)                      0.02       3.43 r
+  U4203/ZN (OAI31D2BWP)                    0.02       3.45 f
+  U3693/ZN (XNR2D1BWP)                     0.08       3.53 r
+  U_mac/oC_reg[34]/D (DFCNQD2BWP)          0.00       3.53 r
+  data arrival time                                   3.53
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  U_mac/oC_reg[34]/CP (DFCNQD2BWP)         0.00       2.35 r
+  library setup time                      -0.03       2.32
+  data required time                                  2.32
+  -----------------------------------------------------------
+  data required time                                  2.32
+  data arrival time                                  -3.53
+  -----------------------------------------------------------
+  slack (VIOLATED)                                   -1.20
+
+
+1
