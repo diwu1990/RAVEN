@@ -1,5 +1,5 @@
 module priority_enc_20 (
-    input logic [15 : 0] in,
+    input logic [19 : 0] in,
     output logic [4 : 0] out
 );
     
