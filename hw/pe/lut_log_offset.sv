@@ -21,7 +21,7 @@ module lut_log_offset (
             // 4'b1101 : log_offset <= 24'b110010111111110010111111;
             // 4'b1110 : log_offset <= 24'b111111111111111111111111;
             // 4'b1111 : log_offset <= 24'b111111111111111111111111;
-            // default : log_offset <= 24'b000100000000000100000000;
+            default : log_offset <= 24'b000100000000000100000000;
         endcase
     end
 
