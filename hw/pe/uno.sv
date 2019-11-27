@@ -85,7 +85,7 @@ mac U_mac(.clk(clk),
           );
 
 assign macX = (op == 0) ? X : (fisrt_cycle ? coeff : macO);
-assign macY = (op == 0) ? Y : (fisrt_cycle ? var_x : scale);
+assign macY = (op == 0) ? Y : (last_cycle ? var_x : scale);
 assign macZ = (op == 0) ? (acc_en ? macO : Z) : (last_cycle ? offset : coeff);
 
 assign out = macO;
