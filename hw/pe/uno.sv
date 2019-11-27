@@ -2,6 +2,7 @@
 `include "mac.sv"
 `include "lut_exp_scale.sv"
 `include "lut_log_offset.sv"
+`include "priority_enc_12.sv"
 
 module uno (
     input clk,    // Clock
@@ -36,7 +37,7 @@ logic [2*`MAC_BW-1 : 0] offset;
 logic [`MAC_BW-1 : 0] macX;
 logic [`MAC_BW-1 : 0] macY;
 logic [2*`MAC_BW-1 : 0] macZ;
-logic [2*`MAC_BW-1 : 0] macO;
+logic [2*`MAC_BW+3 : 0] macO;
 
 assign x_int = X[11 : 8];
 assign x_frac = X[7 : 0];
