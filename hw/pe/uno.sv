@@ -14,7 +14,8 @@ module uno (
     input [`MAC_BW-1 : 0] coeff,
     input logic fisrt_cycle,
     input logic last_cycle,
-    input logic acc_en
+    input logic acc_en,
+    output logic [2*`MAC_BW+3 : 0] out
 );
 
 //MAC: op = 00
@@ -82,6 +83,8 @@ mac U_mac(.clk(clk),
 assign macX = (op == 0) ? X : (fisrt_cycle ? coeff : macO);
 assign macY = (op == 0) ? Y : (fisrt_cycle ? var_x : scale);
 assign macZ = (op == 0) ? (acc_en ? macO : Z) : (last_cycle ? offset : coeff);
+
+assign out = macO;
 
 endmodule
 
