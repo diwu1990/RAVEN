@@ -25,8 +25,12 @@ logic [`MAC_BW-1 : 0] x_norm;
 logic [3 : 0] x_int;
 logic [`MAC_BW-1 : 0] exp_scale;
 logic [`MAC_BW-1 : 0] point;
+logic [`MAC_BW-1 : 0] point_sub_x;
+logic [`MAC_BW-1 : 0] var;
+logic [`MAC_BW-1 : 0] scale;
 logic [3 : 0] shiftx;
 logic [2*`MAC_BW-1 : 0] log_offset;
+logic [2*`MAC_BW-1 : 0] offset;
 
 assign x_int = X[11 : 8];
 assign exp_int = X[11 : 8];
