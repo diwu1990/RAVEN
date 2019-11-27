@@ -61,7 +61,7 @@ assign point  = (op == 2'b01) ? 12'b000011000000 : // div: 0.75
                 (op == 2'b11) ? 12'b000011000000 : {`MAC_BW{1'b0}} ; // log: 0.75
 
 assign var_x  = (op == 2'b01) ? point_sub_x : // div: POINT - x_norm
-                (op == 2'b10) ? {4{x[11]}}, x_frac} : // exp: x_frac
+                (op == 2'b10) ? {4{X[11]}}, x_frac} : // exp: x_frac
                 (op == 2'b11) ? point_sub_x : {`MAC_BW{1'b0}} ; // log: POINT - x_norm  
 
 mac U_mac(.clk(clk),
