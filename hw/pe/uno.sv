@@ -26,7 +26,7 @@ logic [3 : 0] x_int;
 logic [`MAC_BW-1 : 0] exp_scale;
 logic [`MAC_BW-1 : 0] point;
 logic [`MAC_BW-1 : 0] point_sub_x;
-logic [`MAC_BW-1 : 0] var;
+logic [`MAC_BW-1 : 0] var_x;
 logic [`MAC_BW-1 : 0] scale;
 logic [3 : 0] shiftx;
 logic [2*`MAC_BW-1 : 0] log_offset;
@@ -60,20 +60,20 @@ assign point  = (op == 2'b01) ? 12'b000011000000 : // div: 0.75
                 (op == 2'b10) ? 12'b000000000000 : // exp: 0
                 (op == 2'b11) ? 12'b000011000000 : {`MAC_BW{1'b0}} ; // log: 0.75
 
-assign var    = (op == 2'b01) ? point_sub_x : // div: POINT - x_norm
+assign var_x    = (op == 2'b01) ? point_sub_x : // div: POINT - x_norm
                 (op == 2'b10) ? {4{x[11]}, x_frac[7:0]}  : // exp: X_frac
                 (op == 2'b11) ? point_sub_x : {`MAC_BW{1'b0}} ; // log: POINT - x_norm  
 
 mac U_mac(.clk(clk),
           .rst_n(rst_n),
           .iA(macX), // macN, and coeff for first cycle
-          .iB(macY), // var, and scale for last cycle
+          .iB(macY), // var_x, and scale for last cycle
           .iC(macZ), // coeff, and offset for last cycle
           .oC(macO)
           );
 
 assign macX = (op == 0) ? X : (fisrt_cycle ? coeff : macO);
-assign macY = (op == 0) ? Y : (fisrt_cycle ? var : scale);
+assign macY = (op == 0) ? Y : (fisrt_cycle ? var_x : scale);
 assign macZ = (op == 0) ? (acc_en ? macO : Z) : (last_cycle ? offset : coeff);
 
 endmodule
