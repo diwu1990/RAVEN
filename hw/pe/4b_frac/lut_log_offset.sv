@@ -2,7 +2,7 @@ module lut_log_offset (
     input logic clk,
     input logic rst_n,
     input logic [3:0] shift_offset,
-    output logic [23:0] log_offset
+    output logic [15:0] log_offset
 );
     
     always_ff @(posedge clk or negedge rst_n) begin : proc_log_offset
