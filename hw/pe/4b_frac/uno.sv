@@ -57,7 +57,7 @@ lut_log_offset U_lut_log_offset(.clk(clk),
                                 .shift_offset(shiftx), 
                                 .log_offset(log_offset));
 
-priority_enc_12 U_priority_enc_12(.in(X),
+priority_enc_8 U_priority_enc_12(.in(X),
                                   .out(shiftx));
 
 assign scale  = (op == 2'b01) ? Y >> shiftx : //div; y*2^(-ex)
