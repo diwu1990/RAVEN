@@ -9,7 +9,7 @@ module uno (
     input logic [1:0] op,
     input [`MAC_BW-1 : 0] X,
     input [`MAC_BW-1 : 0] Y,
-    input [`2*MAC_BW-1 : 0] Z,
+    input [2*`MAC_BW-1 : 0] Z,
     input [`MAC_BW-1 : 0] coeff,
     input logic fisrt_cycle,
     input logic last_cycle,
