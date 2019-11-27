@@ -33,6 +33,11 @@ logic [3 : 0] shiftx;
 logic [2*`MAC_BW-1 : 0] log_offset;
 logic [2*`MAC_BW-1 : 0] offset;
 
+logic [`MAC_BW-1 : 0] macX;
+logic [`MAC_BW-1 : 0] macY;
+logic [2*`MAC_BW-1 : 0] macZ;
+logic [2*`MAC_BW-1 : 0] macO;
+
 assign x_int = X[11 : 8];
 assign x_frac = X[7 : 0];
 
