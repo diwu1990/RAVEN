@@ -1,10 +1,10 @@
 module lut_exp_scale (
-    input logic clock,
+    input logic clk,
     input logic rst_n,
     input logic [3:0] exp_int,
     output logic [11:0] exp_scale
 );
-    always_ff @(posedge clock or negedge rst_n) begin : proc_exp_scale
+    always_ff @(posedge clk or negedge rst_n) begin : proc_exp_scale
         if(~rst_n) begin
             exp_scale <= 0;
         end else begin
