@@ -1,32 +1,34 @@
-from gen_trace_conv2d_os import gen_trace_conv2d_os_read, gen_trace_conv2d_os_write
+from gen_trace_conv2d_os import gen_trace_conv2d_os
+
 
 def sram_trace_conv2d(
         mac_rows = 4, # row size of systolic array
         mac_cols = 4, # column size of systolic array
-        batch = 1, # batch size
+        batch = 2, # batch size
         ifm_h = 7, # input feature map height
         ifm_w = 7, # input feature map width
         wgt_h = 3, # weight height
         wgt_w = 3, # weight width
         ichl = 3, # input channel count
-        ochl = 3, # output channel count, also the filter count
-        stride_h = 1, # stride on height dimension, 
-        stride_w = 1, # stride on width dimension, 
+        ochl = 5, # output channel count, also the filter count
+        stride_h = 1, # stride on height dimension
+        stride_w = 1, # stride on width dimension
         ifm_base = 0, # input feature map base addr
         wgt_base = 1000000, # weight base addr
         ofm_base = 2000000, # output feature map base addr
-        fm_fmt = "NHWC", # format of feature map layout. options: "NHWC", "NCHW". default is "NHWC".
-        dataflow = "IS", # data flow in the systolic array. options: "OS", "WS", "IS". default is "OS".
+        fm_fmt = "NHWC", # format of feature map layout. options: "NHWC", "NCHW". default is "NHWC"
+        stall = 0, # the stall cycles between switching mapping, default 0
+        dataflow = "OS", # data flow in the systolic array. options: "OS", "WS", "IS". default is "OS"
         sram_trace_conv2d_read_file = "sram_trace_conv2d_read.csv", 
         sram_trace_conv2d_write_file = "sram_trace_conv2d_write.csv"
-):
+    ):
 
     """
     This sram_trace_conv2d assumes valid conv, and does not support dilation.
     """
 
     if dataflow is "OS":
-        read_cycles, util = gen_trace_conv2d_os_read(
+        cycles, utilization = gen_trace_conv2d_os(
                                 mac_rows = mac_rows, 
                                 mac_cols = mac_cols, 
                                 batch = batch, 
@@ -40,26 +42,13 @@ def sram_trace_conv2d(
                                 stride_w = stride_w, 
                                 ifm_base = ifm_base, 
                                 wgt_base = wgt_base, 
+                                ofm_base = ofm_base, 
                                 fm_fmt = fm_fmt, 
-                                sram_trace_conv2d_read_file = sram_trace_conv2d_read_file
+                                stall = 0, # the stall cycles between switching mapping, default 0
+                                sram_trace_conv2d_read_file = sram_trace_conv2d_read_file,
+                                sram_trace_conv2d_write_file = sram_trace_conv2d_write_file
                                 )
 
-        write_cycles = gen_trace_conv2d_os_write(
-                            mac_rows = mac_rows, 
-                            mac_cols = mac_cols, 
-                            batch = batch, 
-                            ifm_h = ifm_h, 
-                            ifm_w = ifm_w, 
-                            wgt_h = wgt_h, 
-                            wgt_w = wgt_w, 
-                            ichl = ichl, 
-                            ochl = ochl, 
-                            stride_h = stride_h, 
-                            stride_w = stride_w, 
-                            ofm_base = ofm_base, 
-                            fm_fmt = fm_fmt, 
-                            sram_trace_conv2d_write_file = sram_trace_conv2d_write_file
-                            )
     elif dataflow is "IS":
         raise ValueError("Input dataflow -> "+dataflow+" <- is not implemented yet.")
     elif dataflow is "WS":
@@ -67,9 +56,7 @@ def sram_trace_conv2d(
     else:
         raise ValueError("Input dataflow -> "+dataflow+" <- is not supported.")
 
-    cycles = max(read_cycles, write_cycles)
-    str_cycles = str(cycles)
-    return (str_cycles, util)
+    return cycles, utilization
 
 
 if __name__ == "__main__":
