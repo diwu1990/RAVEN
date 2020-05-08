@@ -8,7 +8,7 @@ module uno (
     input [`MAC_BW-1 : 0] ifm,
     input [`MAC_BW-1 : 0] ifm_var,
     input [`MAC_BW-1 : 0] ifm_scale,
-    input [`MAC_BW-1 : 0] sum_x,
+    input [2*`MAC_BW-1 : 0] i_sum,
     input YSEL,
     input [`MAC_BW-1 : 0] weight,
     input [`MAC_BW-1 : 0] sum_y,
@@ -16,9 +16,9 @@ module uno (
     input ZSEL,
     input [2*`MAC_BW-1 : 0] ifm_coeff_1,
     input [2*`MAC_BW-1 : 0] ifm_offset,
-    input [2*`MAC_BW-1 : 0] sum_z,
-    input [2*`MAC_BW-1 : 0] sum_o,
-    output logic [2*`MAC_BW-1 : 0] out
+    output logic [`MAC_BW-1 : 0] o_X,
+    output logic [`MAC_BW-1 : 0] o_Y,
+    output logic [2*`MAC_BW-1 : 0] o_sum
 );
 
     logic [`MAC_BW-1 : 0] X,
@@ -50,7 +50,7 @@ module uno (
             2'b00 : Z <= ifm_coeff_1;
             2'b01 : Z <= ifm_offset;
             2'b10 : Z <= sum_z;
-            2'b11 : Z <= sum_o;
+            2'b11 : Z <= sum;
             default : Z <= sum_o;
         endcase
     end
@@ -60,10 +60,10 @@ module uno (
               .iA(X), // macN, and coeff for first cycle
               .iB(Y), // var_x, and scale for last cycle
               .iC(Z), // coeff, and offset for last cycle
-              .oC(out)
+              .oC(o_sum)
               );
 
-    assign out = macO;
+    assign o_O = macO;
 
 endmodule
 
