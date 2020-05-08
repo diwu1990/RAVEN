@@ -54,13 +54,9 @@ def gen_trace_conv2d_os(
     all_px_write_done = False
     ofm_write_cnt = 0
 
-    # parameter for trace generation
-    fold_chn = np.floor((batch * ochn) / mac_cols)
-    residual_chn = (batch * ochn) % mac_cols
-    total_chn = fold_chn + residual_chn
-    total_chn_px = total_chn * ofm_size_chn
-    final_row_fold_px = int(total_chn_px % mac_rows)
-    final_col_fold_chn = residual_chn
+    # parameter for folding boundry check
+    row_fold_chn = int(ofm_size_chn % mac_rows)
+    col_fold_chn = int((batch * ochn) % mac_cols)
     
     # pbar = tqdm(total=batch * ochn)
 
@@ -84,7 +80,8 @@ def gen_trace_conv2d_os(
     # the ofm h index that each pe is assigned for computing
     i_row_ofm_h = np.zeros((mac_rows, mac_cols))
     # the ofm w index that each pe is assigned for computing
-    i_row_ofm_w = np.zeros((mac_rows, mac_cols))
+    i_row_ofm_w = np.zeros((mac_rows, mac_cols)) \
+                + np.array([[r] for r in range(np.sum(act_rows))] + [[0] for c in range(mac_rows - np.sum(act_rows))], dtype=float)
 
     # the weight input channel index that each pe is assigned for computing
     i_row_wgt_ci = np.zeros((mac_rows, mac_cols))
@@ -145,40 +142,50 @@ def gen_trace_conv2d_os(
         i_row_wgt_ci_carry = (np.floor(i_row_wgt_ci / ichn) == 1) * act_idx
         i_row_wgt_ci[i_row_wgt_ci_carry] = 0
         i_row_wgt_ci[np.invert(act_idx)] = -1
-        print("i_row_wgt_ci\n", i_row_wgt_ci)
 
         i_row_wgt_w[i_row_wgt_ci_carry] += 1
         # i_row_wgt_w_carry indicates that one ifm row of an ofm pixel is done
         i_row_wgt_w_carry = (np.floor(i_row_wgt_w / wgt_w) == 1) * act_idx
         i_row_wgt_w[i_row_wgt_w_carry] = 0
-        print("i_row_wgt_w\n", i_row_wgt_w)
 
         i_row_wgt_h[i_row_wgt_w_carry] += 1
         # i_row_wgt_h_carry indicates that one ofm pixel is done
         i_row_wgt_h_carry = (np.floor(i_row_wgt_h / wgt_h) == 1) * act_idx
         i_row_wgt_h[i_row_wgt_h_carry] = 0
-        print("i_row_wgt_h\n", i_row_wgt_h)
 
         out_vld = i_row_wgt_h_carry
 
+        # print("i_row_wgt_h_carry\n", i_row_wgt_h_carry)
+        # print("i_row_ofm_w\n", i_row_ofm_w)
+        # print("i_row_ofm_w[i_row_wgt_h_carry]\n", i_row_ofm_w[i_row_wgt_h_carry])
+        # print("mac_rows\n", mac_rows)
+
         # processing next pixel in the same channel
-        i_row_ofm_w[i_row_wgt_h_carry] += 1
+        i_row_ofm_w[i_row_wgt_h_carry] += mac_rows
         # i_row_ofm_w_carry indicates that one ofm row is done
         i_row_ofm_w_carry = (np.floor(i_row_ofm_w / ofm_w) == 1) * act_idx
-        i_row_ofm_w[i_row_ofm_w_carry] = 0
-        print("i_row_ofm_w\n", i_row_ofm_w)
+        i_row_ofm_w[i_row_ofm_w_carry] = i_row_ofm_w[i_row_ofm_w_carry] % ofm_w
 
         i_row_ofm_h[i_row_ofm_w_carry] += 1
+
+        next_px = i_row_ofm_h * ofm_w \
+                   + i_row_ofm_w
+        diff_px = ofm_size_chn - next_px[:, 0] - 1 == 0
+        act_rows[ofm_size_chn - next_px[:, 0] - 1 < 0] = 0
+        for r in range(mac_rows-2, -1, -1):
+            if act_rows[r, 0] == 0 or diff_px[r] == 1:
+                act_rows[r+1, 0] = 0
+
         # i_row_ofm_h_carry indicates that one ofm channel is done
         i_row_ofm_h_carry = (np.floor(i_row_ofm_h / ofm_h) == 1) * act_idx
         i_row_ofm_h[i_row_ofm_h_carry] = 0
-        print("i_row_ofm_h\n", i_row_ofm_h)
 
         # print(np.sum(i_row_ofm_h_carry.astype("int")))
         # pbar.update(np.sum(i_row_ofm_h_carry.astype("int")))
 
         # processing next channel
         top_sum = np.sum(i_row_ofm_h_carry[0, :].astype("float"))
+        print("i_row_ofm_h_carry[0, :]\n", i_row_ofm_h_carry[0, :])
         assert top_sum <= 1, "sum of i_row_ofm_h_carry[0] should be no greater than 1."
         if len(remained_nc) > 0:
             # if more remained channels, assign channel and update act_cols
@@ -186,30 +193,29 @@ def gen_trace_conv2d_os(
             i_col_ofm_c[i_row_ofm_h_carry[0, :]] = remained_nc[0] % ochn
             if top_sum == 1:
                 print("process a new channel")
+                act_rows[i_row_ofm_h_carry[0, :]] = 
                 remained_nc = remained_nc[1:]
             else:
                 pass
             # and all columns will be active
             # act_cols = np.asarray([[x < mac_cols for x in range(mac_cols)]], dtype=int)
         else:
+            print("no remained_nc")
             # if no more remained channels, deactivate the finished column
-            act_cols[0, final_col_fold_chn:] = 0
+            act_cols[0][i_row_ofm_h_carry[0, :]] = 0
             # print(act_cols)
+        print("i_col_ofm_n\n", i_col_ofm_n)
+        print("i_col_ofm_c\n", i_col_ofm_c)
+        print("act_cols\n", act_cols)
+        print("act_rows\n", act_rows)
 
-        current_px = i_col_ofm_n[0] * ofm_h * ofm_w * ochn \
-                   + i_row_ofm_h[0, 0] * ofm_w * ochn \
-                   + i_row_ofm_w[0, 0] * ochn \
-                   + i_col_ofm_c[0]
-
-        if ofm_size - current_px - 1 <= final_row_fold_px:
-            act_rows[final_row_fold_px:, 0] = 0
 
         return remained_nc, act_cols, act_rows, \
                 i_col_ofm_n, i_col_ofm_c, i_row_ofm_h, i_row_ofm_w, \
                 i_row_wgt_ci, i_row_wgt_h, i_row_wgt_w, \
                 o_col_ofm_n, o_col_ofm_c, o_row_ofm_h, o_row_ofm_w, out_vld
 
-    while cycles < 130:
+    while cycles < 300:
     # while not all_px_write_done:
         print("cycles===============>", cycles)
         if fm_fmt is "NHWC":
