@@ -1,6 +1,8 @@
 import torch
 from RAVEN.pe.appr_utils import RoundingNoGrad, Trunc
 
+# This file is for SECO.
+
 def Appr_Taylor(scale, 
                 const, 
                 var, 
@@ -27,7 +29,6 @@ def Appr_Taylor(scale,
     
     "fxp" means whether to performance fixed point calculation, in which the data bitwidth can be expressed as
     (1 + "intwidth" + "fracwidth"), and "rounding" indicates the rounding mode.
-    This code is for SECO, not for UNO.
     """
     
     def flp_poly(scale, 

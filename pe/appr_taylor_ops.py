@@ -1,6 +1,8 @@
 import torch
 from RAVEN.pe.appr_poly_utils import Appr_Taylor
 
+# This file is for SECO.
+
 class ApprExp(torch.autograd.Function):
     """
     ApprExp is the approximate exponentiation with the gradient for the 
@@ -9,7 +11,6 @@ class ApprExp(torch.autograd.Function):
     not.
     A precise exponentiation example can be found here:
     https://pytorch.org/docs/stable/_modules/torch/autograd/function.html
-    This code is for SECO, not for UNO.
     """
     # Note that both forward and backward are @staticmethods
     @staticmethod
