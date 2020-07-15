@@ -27,6 +27,7 @@ def Appr_Taylor(scale,
     
     "fxp" means whether to performance fixed point calculation, in which the data bitwidth can be expressed as
     (1 + "intwidth" + "fracwidth"), and "rounding" indicates the rounding mode.
+    This code is for SECO, not for UNO.
     """
     
     def flp_poly(scale, 

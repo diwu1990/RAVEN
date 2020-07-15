@@ -9,6 +9,7 @@ class ApprExp(torch.autograd.Function):
     not.
     A precise exponentiation example can be found here:
     https://pytorch.org/docs/stable/_modules/torch/autograd/function.html
+    This code is for SECO, not for UNO.
     """
     # Note that both forward and backward are @staticmethods
     @staticmethod
