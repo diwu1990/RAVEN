@@ -2,6 +2,8 @@ import torch
 import math
 import matplotlib.pyplot as plt
 
+# This file is for UNO PE.
+
 class RoundingNoGrad(torch.autograd.Function):
     """
     RoundingNoGrad is a rounding operation which bypasses the input gradient to output directly.

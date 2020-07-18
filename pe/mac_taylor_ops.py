@@ -2,6 +2,8 @@ import torch
 import math
 from RAVEN.pe.mac_taylor_utils import MAC_Taylor
 
+# This file is for UNO PE.
+
 class MACexp(torch.autograd.Function):
     """
     MACexp is the approximate exponentiation with the gradient for the 
@@ -346,7 +348,13 @@ def MACsoftmax(x,
                            keepwidth, 
                            appr_grad, 
                            fxp_grad)
+    inf_check = torch.eq(exp_val, float('inf')).type(torch.float)
+    inf_check_sum = inf_check.sum()
+    if inf_check_sum.item() >= 1:
+        return inf_check.mul(1/inf_check_sum)
     sum_val = exp_val.sum(dim=dim, keepdim=True)
+    # print("exp_val:", exp_val)
+    # print("sum_val:", sum_val)
     div_val = MACdiv.apply(exp_val, 
                            sum_val, 
                            cycle, 
@@ -389,5 +397,6 @@ def MAClogsoftmax(x,
                            keepwidth, 
                            appr_grad, 
                            fxp_grad)
+    log_val[torch.isnan(log_val)] = -2**intwidth
     return log_val
 
