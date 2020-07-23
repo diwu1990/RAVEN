@@ -339,6 +339,11 @@ def MACsoftmax(x,
                keepwidth=False, 
                appr_grad=False, 
                fxp_grad=False):
+    # when the input is too small, one solution from software side is too convert it to larger values.
+    # but this might not solve the div-by-0 issule.
+    # offset = torch.mean(x, dim=dim)
+    # offset = torch.unsqueeze(offset, dim)
+    # exp_val = MACexp.apply(x - offset, 
     exp_val = MACexp.apply(x, 
                            cycle, 
                            intwidth, 
@@ -353,13 +358,12 @@ def MACsoftmax(x,
     if inf_check_sum.item() >= 1:
         return inf_check.mul(1/inf_check_sum)
     sum_val = exp_val.sum(dim=dim, keepdim=True)
-    # print("exp_val:", exp_val)
-    # print("sum_val:", sum_val)
+
     div_val = MACdiv.apply(exp_val, 
                            sum_val, 
                            cycle, 
-                           intwidth, 
-                           fracwidth, 
+                           intwidth,
+                           fracwidth,
                            fxp, 
                            rounding, 
                            keepwidth, 
