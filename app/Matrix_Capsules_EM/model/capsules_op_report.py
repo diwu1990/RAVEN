@@ -151,6 +151,7 @@ class ConvCaps(nn.Module):
         sigma_sq = sigma_sq.view(b, C, psize)
         
         print("m-step log", sigma_sq.shape)
+        print()
         cost_h = (self.beta_u.view(C, 1) + torch.log(sigma_sq.sqrt())) * r_sum
         print("m-step element mul", cost_h.shape)
         print()
@@ -388,7 +389,9 @@ class CapsNet(nn.Module):
         print("self.conv1 in", x.shape)
         x = self.conv1(x)
         print("self.conv1 out", x.shape)
+        print()
         print("batch norm", x.shape)
+        print()
         x = self.bn1(x)
         x = self.relu1(x)
         x = self.primary_caps(x)
