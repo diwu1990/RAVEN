@@ -28,7 +28,7 @@ class MACexp(torch.autograd.Function):
         
         # coeff is the precise coefficient, up to 10 terms are pre-stored
         ctx.coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
@@ -62,7 +62,6 @@ class MACexp(torch.autograd.Function):
         # ctx is a context object that can be used to stash information
         # for backward computation
         ctx.save_for_backward(x)
-        
         return output
     
     @staticmethod
@@ -128,7 +127,7 @@ class MACdiv(torch.autograd.Function):
             coeff[idx] = 1/(point**(idx+1))
             
         ctx.coeff = coeff
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
@@ -213,7 +212,7 @@ class MAClog(torch.autograd.Function):
             coeff[idx] = 1/(point**idx)/idx
             
         ctx.coeff = coeff
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
