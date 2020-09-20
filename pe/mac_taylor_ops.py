@@ -2,6 +2,8 @@ import torch
 import math
 from RAVEN.pe.mac_taylor_utils import MAC_Taylor
 
+# This file is for UNO PE.
+
 class MACexp(torch.autograd.Function):
     """
     MACexp is the approximate exponentiation with the gradient for the 
@@ -26,7 +28,7 @@ class MACexp(torch.autograd.Function):
         
         # coeff is the precise coefficient, up to 10 terms are pre-stored
         ctx.coeff = [1/1, 1/1, 1/2, 1/6, 1/24, 1/120, 1/720, 1/5040, 1/40320, 1/362880]
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
@@ -60,7 +62,6 @@ class MACexp(torch.autograd.Function):
         # ctx is a context object that can be used to stash information
         # for backward computation
         ctx.save_for_backward(x)
-        
         return output
     
     @staticmethod
@@ -126,7 +127,7 @@ class MACdiv(torch.autograd.Function):
             coeff[idx] = 1/(point**(idx+1))
             
         ctx.coeff = coeff
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
@@ -211,7 +212,7 @@ class MAClog(torch.autograd.Function):
             coeff[idx] = 1/(point**idx)/idx
             
         ctx.coeff = coeff
-        ctx.cycle = cycle
+        ctx.cycle = cycle - 1
         
         ctx.intwidth = intwidth
         ctx.fracwidth = fracwidth
@@ -337,6 +338,11 @@ def MACsoftmax(x,
                keepwidth=False, 
                appr_grad=False, 
                fxp_grad=False):
+    # when the input is too small, one solution from software side is too convert it to larger values.
+    # but this might not solve the div-by-0 issule.
+    # offset = torch.mean(x, dim=dim)
+    # offset = torch.unsqueeze(offset, dim)
+    # exp_val = MACexp.apply(x - offset, 
     exp_val = MACexp.apply(x, 
                            cycle, 
                            intwidth, 
@@ -346,12 +352,17 @@ def MACsoftmax(x,
                            keepwidth, 
                            appr_grad, 
                            fxp_grad)
+    inf_check = torch.eq(exp_val, float('inf')).type(torch.float)
+    inf_check_sum = inf_check.sum()
+    if inf_check_sum.item() >= 1:
+        return inf_check.mul(1/inf_check_sum)
     sum_val = exp_val.sum(dim=dim, keepdim=True)
+
     div_val = MACdiv.apply(exp_val, 
                            sum_val, 
                            cycle, 
-                           intwidth, 
-                           fracwidth, 
+                           intwidth,
+                           fracwidth,
                            fxp, 
                            rounding, 
                            keepwidth, 
@@ -389,5 +400,6 @@ def MAClogsoftmax(x,
                            keepwidth, 
                            appr_grad, 
                            fxp_grad)
+    log_val[torch.isnan(log_val)] = -2**intwidth
     return log_val
 

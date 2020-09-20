@@ -1,6 +1,8 @@
 import torch
 from RAVEN.pe.appr_utils import RoundingNoGrad, Trunc
 
+# This file is for SECO.
+
 def Appr_Taylor(scale, 
                 const, 
                 var, 

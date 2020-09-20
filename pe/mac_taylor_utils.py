@@ -1,6 +1,8 @@
 import torch
 from RAVEN.pe.appr_utils import *
 
+# This file is for UNO PE.
+
 def MAC_Taylor(scale, 
                coeff, 
                var, 
@@ -21,7 +23,7 @@ def MAC_Taylor(scale,
     1) Tensor scale is calculated by shifting input or using very small LUT.
     2) Tensor var is calulated as (input - offset)
     
-    "fxp" means whether to performance fixed point calculation, in which the data bitwidth can be expressed as
+    "fxp" means whether to perform fixed point calculation, in which the data bitwidth can be expressed as
     (1 + "intwidth" + "fracwidth"), and "rounding" indicates the rounding mode.
     """
     
