@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : demux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 12:14:37 2020
+Date   : Sun Sep 20 15:20:42 2020
 ****************************************
 
 
@@ -34,12 +34,12 @@ Power-specific unit information :
     Leakage Power Units = 1nW
 
 
-  Cell Internal Power  =   4.5656 mW   (10%)
-  Net Switching Power  =  40.5495 mW   (90%)
+  Cell Internal Power  =   3.3767 mW   (10%)
+  Net Switching Power  =  30.0098 mW   (90%)
                          ---------
-Total Dynamic Power    =  45.1151 mW  (100%)
+Total Dynamic Power    =  33.3865 mW  (100%)
 
-Cell Leakage Power     =   7.9394 uW
+Cell Leakage Power     =   5.9517 uW
 
 Information: report_power power group summary does not include estimated clock tree power. (PWR-789)
 
@@ -52,7 +52,7 @@ black_box          0.0000            0.0000            0.0000            0.0000 
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
 register           0.0000            0.0000            0.0000            0.0000  (   0.00%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational      4.5658           40.5489        7.9394e+03           45.1265  ( 100.00%)
+combinational      3.3769           30.0091        5.9517e+03           33.3953  ( 100.00%)
 --------------------------------------------------------------------------------------------------
-Total              4.5658 mW        40.5489 mW     7.9394e+03 nW        45.1265 mW
+Total              3.3769 mW        30.0091 mW     5.9517e+03 nW        33.3953 mW
 1

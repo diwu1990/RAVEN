@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : adder_tree
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 01:10:58 2020
+Date   : Sun Sep 20 15:26:32 2020
 ****************************************
 
 
@@ -34,12 +34,12 @@ Power-specific unit information :
     Leakage Power Units = 1nW
 
 
-  Cell Internal Power  =   4.3043 mW   (44%)
-  Net Switching Power  =   5.5274 mW   (56%)
+  Cell Internal Power  =   3.6846 mW   (49%)
+  Net Switching Power  =   3.8845 mW   (51%)
                          ---------
-Total Dynamic Power    =   9.8317 mW  (100%)
+Total Dynamic Power    =   7.5691 mW  (100%)
 
-Cell Leakage Power     =   2.5650 uW
+Cell Leakage Power     =   2.2546 uW
 
 
                  Internal         Switching           Leakage            Total
@@ -49,9 +49,9 @@ io_pad             0.0000            0.0000            0.0000            0.0000 
 memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
 black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
-register           1.8141            0.1221          216.8376            1.9365  (  19.69%)
+register           1.4484            0.1064          214.3993            1.5550  (  20.54%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational      2.4901            5.4052        2.3482e+03            7.8978  (  80.31%)
+combinational      2.2362            3.7781        2.0402e+03            6.0164  (  79.46%)
 --------------------------------------------------------------------------------------------------
-Total              4.3043 mW         5.5273 mW     2.5650e+03 nW         9.8343 mW
+Total              3.6846 mW         3.8845 mW     2.2546e+03 nW         7.5714 mW
 1
