@@ -6,7 +6,7 @@ Report : timing
         -max_paths 1
 Design : mux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 15:22:05 2020
+Date   : Sun Sep 20 15:41:16 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc

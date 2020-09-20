@@ -3,7 +3,7 @@
 Report : area
 Design : mux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 15:22:02 2020
+Date   : Sun Sep 20 15:41:13 2020
 ****************************************
 
 Information: Updating design information... (UID-85)
