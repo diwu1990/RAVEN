@@ -1,7 +1,7 @@
 `include "param_def.sv"
 `include "mac.sv"
 
-module array (
+module nonlinear (
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
     input logic [1:0] mode,
