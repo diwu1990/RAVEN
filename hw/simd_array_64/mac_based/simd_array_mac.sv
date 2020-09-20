@@ -2,6 +2,8 @@
 `include "array.sv"
 `include "nonlinear.sv"
 `include "adder_tree.sv"
+`include "mux.sv"
+`include "demux.sv"
 
 module simd_array_mac (
     input logic clk,    // Clock
@@ -24,18 +26,22 @@ module simd_array_mac (
     logic [`MAC_BW-1 : 0] oC_nl [63 : 0];
 
 
-    genvar i;
-    generate
-        for (i = 0; i < 64; i++) begin
-            assign iA_mac[i] = (mode == 0) ? iA[i] : 0;
-            assign iB_mac[i] = (mode == 0) ? iB[i] : 0;
+    demux U_demux(
+        .mode(mode),
+        .iA(iA),
+        .iB(iB),
+        .iA_mac(iA_mac),
+        .iB_mac(iB_mac),
+        .iA_nl(iA_nl),
+        .iB_nl(iB_nl),
+        );
 
-            assign iA_nl[i] = (mode != 0) ? iA[i] : 0;
-            assign iB_nl[i] = (mode != 0) ? iB[i] : 0;
-
-            assign oC[i] = (mode == 0) ? oC_mac[i] : oC_nl[i];
-        end
-    endgenerate
+    mux U_mux(
+        .mode(mode),
+        .iC_mac(iC_mac),
+        .iC_nl(iC_nl),
+        .iC(iC),
+        );
 
     array U_array(
         .clk(clk),
