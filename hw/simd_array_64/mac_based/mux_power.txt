@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : mux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 10:52:31 2020
+Date   : Sun Sep 20 11:55:49 2020
 ****************************************
 
 
@@ -34,12 +34,12 @@ Power-specific unit information :
     Leakage Power Units = 1nW
 
 
-  Cell Internal Power  =   1.5211 mW   (13%)
-  Net Switching Power  =   9.8883 mW   (87%)
+  Cell Internal Power  =   1.7308 mW   (11%)
+  Net Switching Power  =  13.4844 mW   (89%)
                          ---------
-Total Dynamic Power    =  11.4094 mW  (100%)
+Total Dynamic Power    =  15.2152 mW  (100%)
 
-Cell Leakage Power     =   1.0838 uW
+Cell Leakage Power     =   1.1789 uW
 
 Information: report_power power group summary does not include estimated clock tree power. (PWR-789)
 
@@ -52,7 +52,7 @@ black_box          0.0000            0.0000            0.0000            0.0000 
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
 register           0.0000            0.0000            0.0000            0.0000  (   0.00%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational      1.5211            9.8883        1.0838e+03           11.4105  ( 100.00%)
+combinational      1.7308           13.4845        1.1789e+03           15.2164  ( 100.00%)
 --------------------------------------------------------------------------------------------------
-Total              1.5211 mW         9.8883 mW     1.0838e+03 nW        11.4105 mW
+Total              1.7308 mW        13.4845 mW     1.1789e+03 nW        15.2164 mW
 1

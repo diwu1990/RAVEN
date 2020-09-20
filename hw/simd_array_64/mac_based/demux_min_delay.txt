@@ -6,14 +6,14 @@ Report : timing
         -max_paths 1
 Design : demux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 10:29:39 2020
+Date   : Sun Sep 20 12:14:37 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: iB[63][15] (input port)
-  Endpoint: iB_mac[63][15]
+  Startpoint: iA[13][8] (input port)
+  Endpoint: iA_exp[13][8]
             (output port)
   Path Group: (none)
   Path Type: min
@@ -25,13 +25,14 @@ Wire Load Model Mode: segmented
 
   Point                                    Incr       Path
   -----------------------------------------------------------
-  input external delay                     0.00       0.00 r
-  iB[63][15] (in)                          0.00       0.00 r
-  U21210/ZN (CKND0BWP)                     0.02       0.02 f
-  U16389/Z (OR2D2BWP)                      0.08       0.10 f
-  U20485/ZN (CKND16BWP)                    0.07       0.17 r
-  iB_mac[63][15] (out)                     0.00       0.17 r
-  data arrival time                                   0.17
+  input external delay                     0.00       0.00 f
+  iA[13][8] (in)                           0.00       0.00 f
+  U48695/ZN (CKND0BWP)                     0.05       0.05 r
+  U34423/ZN (NR2D1BWP)                     0.04       0.09 f
+  U34419/ZN (CKND2BWP)                     0.04       0.14 r
+  U34420/ZN (CKND16BWP)                    0.06       0.20 f
+  iA_exp[13][8] (out)                      0.00       0.20 f
+  data arrival time                                   0.20
   -----------------------------------------------------------
   (Path is unconstrained)
 

@@ -6,14 +6,14 @@ Report : timing
         -max_paths 1
 Design : demux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 10:29:39 2020
+Date   : Sun Sep 20 12:14:37 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: mode[1] (input port)
-  Endpoint: iB_mac[60][12]
+  Startpoint: mode[0] (input port)
+  Endpoint: iB_exp[49][15]
             (output port)
   Path Group: (none)
   Path Type: max
@@ -25,22 +25,23 @@ Wire Load Model Mode: segmented
 
   Point                                    Incr       Path
   -----------------------------------------------------------
-  input external delay                     0.00       0.00 f
-  mode[1] (in)                             0.00       0.00 f
-  U23185/ZN (NR2D0BWP)                     0.04       0.04 r
-  U21136/Z (CKBD1BWP)                      0.05       0.09 r
-  U21134/Z (CKBD1BWP)                      0.04       0.14 r
-  U20644/Z (CKBD1BWP)                      0.05       0.19 r
-  U21122/Z (CKBD1BWP)                      0.05       0.23 r
-  U20627/Z (CKBD1BWP)                      0.05       0.28 r
-  U21088/Z (CKBD1BWP)                      0.05       0.33 r
-  U20562/Z (CKBD1BWP)                      0.06       0.39 r
-  U20515/Z (CKBD1BWP)                      0.07       0.46 r
-  U20744/ZN (CKND2BWP)                     0.06       0.52 f
-  U16338/Z (OR2D2BWP)                      0.10       0.61 f
-  U20434/ZN (CKND16BWP)                    0.07       0.68 r
-  iB_mac[60][12] (out)                     0.00       0.68 r
-  data arrival time                                   0.68
+  input external delay                     0.00       0.00 r
+  mode[0] (in)                             0.00       0.00 r
+  U47749/ZN (CKND0BWP)                     0.02       0.02 f
+  U47748/ZN (CKND2D0BWP)                   0.04       0.06 r
+  U46719/Z (CKBD1BWP)                      0.05       0.10 r
+  U45248/Z (CKBD1BWP)                      0.05       0.16 r
+  U46697/Z (CKBD1BWP)                      0.05       0.20 r
+  U45225/Z (CKBD1BWP)                      0.05       0.25 r
+  U46629/Z (CKBD1BWP)                      0.05       0.30 r
+  U45129/Z (CKBD1BWP)                      0.05       0.35 r
+  U46306/Z (CKBD1BWP)                      0.05       0.40 r
+  U45547/Z (CKBD2BWP)                      0.07       0.47 r
+  U43821/ZN (NR2XD0BWP)                    0.05       0.51 f
+  U31884/ZN (CKND2BWP)                     0.05       0.56 r
+  U31885/ZN (CKND16BWP)                    0.06       0.62 f
+  iB_exp[49][15] (out)                     0.00       0.62 f
+  data arrival time                                   0.62
   -----------------------------------------------------------
   (Path is unconstrained)
 

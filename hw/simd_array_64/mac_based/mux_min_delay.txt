@@ -6,15 +6,15 @@ Report : timing
         -max_paths 1
 Design : mux
 Version: Q-2019.12-SP3
-Date   : Sun Sep 20 10:52:31 2020
+Date   : Sun Sep 20 11:55:49 2020
 ****************************************
 
 Operating Conditions: NCCOM   Library: tcbn40lpbwptc
 Wire Load Model Mode: segmented
 
-  Startpoint: oC_mac[63][15]
+  Startpoint: oC_mac[9][3]
               (input port)
-  Endpoint: oC[63][15] (output port)
+  Endpoint: oC[9][3] (output port)
   Path Group: (none)
   Path Type: min
 
@@ -26,10 +26,11 @@ Wire Load Model Mode: segmented
   Point                                    Incr       Path
   -----------------------------------------------------------
   input external delay                     0.00       0.00 r
-  oC_mac[63][15] (in)                      0.00       0.00 r
-  U3072/ZN (MUX2ND2BWP)                    0.07       0.07 f
-  U3150/ZN (CKND16BWP)                     0.06       0.14 r
-  oC[63][15] (out)                         0.00       0.14 r
+  oC_mac[9][3] (in)                        0.00       0.00 r
+  U8218/ZN (AOI22D1BWP)                    0.02       0.02 f
+  U8216/Z (AN2D2BWP)                       0.06       0.08 f
+  U8217/ZN (INVD16BWP)                     0.06       0.14 r
+  oC[9][3] (out)                           0.00       0.14 r
   data arrival time                                   0.14
   -----------------------------------------------------------
   (Path is unconstrained)
