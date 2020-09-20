@@ -11,7 +11,7 @@ module demux (
     output logic [`MAC_BW-1 : 0] iA_exp [63 : 0],
     output logic [`MAC_BW-1 : 0] iB_exp [63 : 0],
     output logic [`MAC_BW-1 : 0] iA_log [63 : 0],
-    output logic [`MAC_BW-1 : 0] iB_log [63 : 0],
+    output logic [`MAC_BW-1 : 0] iB_log [63 : 0]
 );
     
     genvar i;
