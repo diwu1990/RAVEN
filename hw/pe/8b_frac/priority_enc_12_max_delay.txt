@@ -1,0 +1,44 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : priority_enc_12
+Version: Q-2019.12-SP3
+Date   : Sun Sep 20 18:03:12 2020
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: in[10] (input port)
+  Endpoint: out[1] (output port)
+  Path Group: (none)
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  priority_enc_12    TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  input external delay                     0.00       0.00 f
+  in[10] (in)                              0.00       0.00 f
+  U69/ZN (NR2XD0BWP)                       0.05       0.05 r
+  U56/ZN (ND4D1BWP)                        0.07       0.12 f
+  U54/ZN (CKND2BWP)                        0.06       0.19 r
+  U55/ZN (CKND16BWP)                       0.06       0.25 f
+  U72/Z (OA32D0BWP)                        0.12       0.37 f
+  U51/Z (OA32D1BWP)                        0.09       0.46 f
+  U62/ZN (CKND0BWP)                        0.04       0.51 r
+  U63/ZN (NR2D3BWP)                        0.04       0.55 f
+  U60/ZN (CKND16BWP)                       0.06       0.61 r
+  out[1] (out)                             0.00       0.61 r
+  data arrival time                                   0.61
+  -----------------------------------------------------------
+  (Path is unconstrained)
+
+
+1
