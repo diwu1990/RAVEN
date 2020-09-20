@@ -1,0 +1,32 @@
+ 
+****************************************
+Report : area
+Design : array
+Version: Q-2019.12-SP3
+Date   : Sun Sep 20 01:51:14 2020
+****************************************
+
+Information: Updating design information... (UID-85)
+Warning: Design 'array' contains 2 high-fanout nets. A fanout number of 1000 will be used for delay calculations involving these nets. (TIM-134)
+Library(s) Used:
+
+    tcbn40lpbwptc (File: /cae/apps/data/tsmclibs-2013/digital/Front_End/timing_power_noise/NLDM/tcbn40lpbwp_120b/tcbn40lpbwptc.db)
+
+Number of ports:                         4098
+Number of nets:                        168410
+Number of cells:                       165959
+Number of combinational cells:         163911
+Number of sequential cells:              2048
+Number of macros/black boxes:               0
+Number of buf/inv:                      50460
+Number of references:                     315
+
+Combinational area:             227684.775280
+Buf/Inv area:                    39645.724475
+Noncombinational area:            9003.279558
+Macro/Black Box area:                0.000000
+Net Interconnect area:      undefined  (Wire load has zero net area)
+
+Total cell area:                236688.054837
+Total area:                 undefined
+1

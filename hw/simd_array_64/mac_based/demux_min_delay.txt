@@ -1,0 +1,39 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay min
+        -max_paths 1
+Design : demux
+Version: Q-2019.12-SP3
+Date   : Sun Sep 20 10:29:39 2020
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: iB[63][15] (input port)
+  Endpoint: iB_mac[63][15]
+            (output port)
+  Path Group: (none)
+  Path Type: min
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  demux              TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  input external delay                     0.00       0.00 r
+  iB[63][15] (in)                          0.00       0.00 r
+  U21210/ZN (CKND0BWP)                     0.02       0.02 f
+  U16389/Z (OR2D2BWP)                      0.08       0.10 f
+  U20485/ZN (CKND16BWP)                    0.07       0.17 r
+  iB_mac[63][15] (out)                     0.00       0.17 r
+  data arrival time                                   0.17
+  -----------------------------------------------------------
+  (Path is unconstrained)
+
+
+1

@@ -1,0 +1,92 @@
+ 
+****************************************
+Report : timing
+        -path full
+        -delay max
+        -max_paths 1
+Design : mac
+Version: Q-2019.12-SP3
+Date   : Sun Sep 20 01:16:07 2020
+****************************************
+
+Operating Conditions: NCCOM   Library: tcbn40lpbwptc
+Wire Load Model Mode: segmented
+
+  Startpoint: iA[1] (input port clocked by clk)
+  Endpoint: oC_reg[30] (rising edge-triggered flip-flop clocked by clk)
+  Path Group: clk
+  Path Type: max
+
+  Des/Clust/Port     Wire Load Model       Library
+  ------------------------------------------------
+  mac                TSMC32K_Lowk_Conservative
+                                           tcbn40lpbwptc
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------
+  clock clk (rise edge)                    0.00       0.00
+  clock network delay (ideal)              0.00       0.00
+  input external delay                     0.25       0.25 r
+  iA[1] (in)                               0.00       0.25 r
+  U3247/ZN (ND4D4BWP)                      0.04       0.29 f
+  U2719/Z (XOR3D4BWP)                      0.14       0.43 f
+  U3753/ZN (XNR2D2BWP)                     0.10       0.53 r
+  U2870/ZN (CKND2D4BWP)                    0.03       0.56 f
+  U2690/ZN (OAI32D2BWP)                    0.05       0.61 r
+  U1716/ZN (INVD2BWP)                      0.03       0.64 f
+  U2350/ZN (ND2D3BWP)                      0.02       0.66 r
+  U1709/ZN (XNR2D2BWP)                     0.07       0.74 f
+  U2927/Z (XOR3D2BWP)                      0.10       0.84 r
+  U1379/ZN (CKND4BWP)                      0.03       0.86 f
+  U917/ZN (DCCKND4BWP)                     0.02       0.88 r
+  U951/ZN (CKND2D4BWP)                     0.02       0.90 f
+  U2117/ZN (ND2D4BWP)                      0.03       0.93 r
+  U3745/Z (XOR3D2BWP)                      0.10       1.02 f
+  U3145/ZN (MAOI222D1BWP)                  0.07       1.09 r
+  U1681/ZN (INVD2BWP)                      0.04       1.14 f
+  U1148/ZN (CKND3BWP)                      0.03       1.16 r
+  U1610/ZN (CKND2D4BWP)                    0.02       1.18 f
+  U1611/ZN (ND2D2BWP)                      0.02       1.20 r
+  U3754/ZN (XNR3D4BWP)                     0.10       1.30 f
+  U2916/Z (CKXOR2D2BWP)                    0.08       1.38 f
+  U3353/ZN (XNR2D2BWP)                     0.09       1.47 r
+  U1741/ZN (INVD4BWP)                      0.02       1.49 f
+  U1740/ZN (IND2D4BWP)                     0.02       1.51 r
+  U3181/Z (OA211D4BWP)                     0.08       1.59 r
+  U3037/ZN (IOA21D2BWP)                    0.03       1.61 f
+  U1747/ZN (OAI21D4BWP)                    0.03       1.64 r
+  U2956/Z (XOR2D1BWP)                      0.08       1.72 f
+  U3487/Z (XOR3D4BWP)                      0.13       1.86 f
+  U2085/ZN (INVD4BWP)                      0.03       1.88 r
+  U2955/ZN (ND2D8BWP)                      0.03       1.91 f
+  U1030/ZN (INVD12BWP)                     0.02       1.93 r
+  U2158/ZN (NR3D8BWP)                      0.02       1.96 f
+  U2377/ZN (ND2D8BWP)                      0.02       1.98 r
+  U1402/ZN (CKND2D4BWP)                    0.02       2.00 f
+  U2334/ZN (IND4D4BWP)                     0.06       2.05 f
+  U2413/Z (OA211D4BWP)                     0.06       2.11 f
+  U2396/ZN (AOI32XD4BWP)                   0.06       2.17 r
+  U915/ZN (ND2D4BWP)                       0.03       2.20 f
+  U909/ZN (CKND4BWP)                       0.02       2.22 r
+  U2395/ZN (OAI31D4BWP)                    0.03       2.25 f
+  U2386/Z (AN3D4BWP)                       0.04       2.29 f
+  U2387/ZN (OAI31D4BWP)                    0.03       2.32 r
+  U1748/ZN (OAI22D2BWP)                    0.04       2.36 f
+  U4083/ZN (AOI31D1BWP)                    0.06       2.42 r
+  oC_reg[30]/D (DFCNQD2BWP)                0.00       2.42 r
+  data arrival time                                   2.42
+
+  clock clk (rise edge)                    2.50       2.50
+  clock network delay (ideal)              0.00       2.50
+  clock uncertainty                       -0.15       2.35
+  oC_reg[30]/CP (DFCNQD2BWP)               0.00       2.35 r
+  library setup time                      -0.04       2.31
+  data required time                                  2.31
+  -----------------------------------------------------------
+  data required time                                  2.31
+  data arrival time                                  -2.42
+  -----------------------------------------------------------
+  slack (VIOLATED)                                   -0.11
+
+
+1
