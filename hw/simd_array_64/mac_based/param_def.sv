@@ -1,5 +1,5 @@
 `ifndef MAC_BW
-    `define MAC_BW 16
+    `define MAC_BW 12
 `endif
 
 `ifndef ACC_DEP
