@@ -14,7 +14,7 @@ module adder_tree (
 
     genvar i;
     generate
-        for (int i = 0; i < 16; i++) begin
+        for (i = 0; i < 16; i++) begin
             assign out_l1[i] = sum_l1[i][2*`MAC_BW+1 : 2];
             always_ff @(posedge clk or negedge rst_n) begin : proc_sum_l1
                 if(~rst_n) begin
@@ -28,7 +28,7 @@ module adder_tree (
 
     genvar i;
     generate
-        for (int i = 0; i < 4; i++) begin
+        for (i = 0; i < 4; i++) begin
             assign out_l2[i] = sum_l2[i][2*`MAC_BW+3 : 4];
             always_ff @(posedge clk or negedge rst_n) begin : proc_sum_l2
                 if(~rst_n) begin

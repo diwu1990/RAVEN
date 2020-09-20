@@ -26,7 +26,7 @@ module simd_array_mac (
 
     genvar i;
     generate
-        for (int i = 0; i < 64; i++) begin
+        for (i = 0; i < 64; i++) begin
             assign iA_mac[i] = (mode == 0) ? iA[i] : 0;
             assign iB_mac[i] = (mode == 0) ? iB[i] : 0;
 

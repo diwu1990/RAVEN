@@ -10,9 +10,9 @@ module array (
     output logic [2*`MAC_BW-1 : 0] oC [63 : 0]
 );
     
-    genvar i
+    genvar i;
     generate
-        for (int i = 0; i < 64; i++) begin
+        for (i = 0; i < 64; i++) begin
             mac U_mac(
                 .clk(clk),
                 .rst_n(rst_n),
