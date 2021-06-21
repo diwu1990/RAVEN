@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 # %%
 """
-# Test for SECO_Taylor
+# Test for SECOtaylor
 """
 
 # %%
@@ -23,7 +23,7 @@ coeff = [1/1, 1/2, 1/4, 1/8, 1/16, 1/32]
 power = [1  ,   2,   3,   4,    5,    5]
 sign  = [1  ,   1,   1,  -1,    1,    1]
 
-approximate = SECO_Taylor(scale, 
+approximate = SECOtaylor(scale, 
                           const, 
                           input, 
                           coeff, 

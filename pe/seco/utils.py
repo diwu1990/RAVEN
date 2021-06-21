@@ -3,7 +3,7 @@ from RAVEN.pe.appr_utils import RoundingNoGrad, Trunc
 
 # This file is for SECO PE simulation from "SECO: A Scalable Accuracy Approximate Exponential Function Via Cross-Layer Optimization"
 
-def SECO_Taylor(scale, 
+def SECOtaylor(scale, 
                 const, 
                 var, 
                 coeff, 
@@ -182,7 +182,7 @@ def param_search(max_extra_term,
     rms_err = []
     
     for term_idx in range(len(coeff)):
-        appr_result = SECO_Taylor(scale,
+        appr_result = SECOtaylor(scale,
                                   const, 
                                   var, 
                                   coeff[0:term_idx+1], 
@@ -226,7 +226,7 @@ def param_search(max_extra_term,
                 for sign_idx in range(max_sign_change):
                     temp_sign[-1]  = sign[-1] * (1-2*sign_idx)
 
-                    appr_result = SECO_Taylor(scale,
+                    appr_result = SECOtaylor(scale,
                                               const, 
                                               var, 
                                               temp_coeff, 
