@@ -1,12 +1,12 @@
-RAVEN PE is fully configurable, and can act as both linear and nonlinear functions:
+RAVEN PE is supposed to fully configurable, and can act as both linear and nonlinear functions, including
 
-    1. multiplication    
-    2. addition
-    3. division
-    4. exponentiation
-    5. logarithm
+    1. Multiply-Accumulate (MAC)
+    2. Division
+    3. Exponentiation
+    4. Logarithm
+    6. ...
 
-Currently, RAVEN PE supports two different algorithm schemes:
+There exists multiple versions of PEs.
 
-    1. Taylor series based
-    2. log2 based
+1. SECO: A Scalable Accuracy Approximate Exponential Function Via Cross-Layer Optimization. In ISLPED'19.
+2. UNO: Virtualizing and Unifying Nonlinear Operations for Emerging Neural Networks. In ISLPED'21.
