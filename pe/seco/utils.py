@@ -1,9 +1,9 @@
 import torch
 from RAVEN.pe.appr_utils import RoundingNoGrad, Trunc
 
-# This file is for SECO.
+# This file is for SECO PE simulation from "SECO: A Scalable Accuracy Approximate Exponential Function Via Cross-Layer Optimization"
 
-def Appr_Taylor(scale, 
+def Taylor_SECO(scale, 
                 const, 
                 var, 
                 coeff, 
@@ -182,7 +182,7 @@ def param_search(max_extra_term,
     rms_err = []
     
     for term_idx in range(len(coeff)):
-        appr_result = Appr_Taylor(scale,
+        appr_result = Taylor_SECO(scale,
                                   const, 
                                   var, 
                                   coeff[0:term_idx+1], 
@@ -226,7 +226,7 @@ def param_search(max_extra_term,
                 for sign_idx in range(max_sign_change):
                     temp_sign[-1]  = sign[-1] * (1-2*sign_idx)
 
-                    appr_result = Appr_Taylor(scale,
+                    appr_result = Taylor_SECO(scale,
                                               const, 
                                               var, 
                                               temp_coeff, 
@@ -374,159 +374,3 @@ def exp_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="rou
                                                                               keepwidth=keepwidth, 
                                                                               valid=valid)
         
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# the following codes are used to generate the parameters used for div
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-def div_data_gen(distribution="uniform"):
-    # This is a function to generate data for chosing parameter for div(y, x), which
-    # only cares about the x between 0.5 and 1. only scale is related to y.
-    if distribution == "uniform":
-        data = torch.distributions.uniform.Uniform(torch.zeros([100000])+0.5, torch.ones([100000])).sample()
-    elif distribution == "middle":
-        mu = torch.ones([100000]).mul(0.5)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "right":
-        mu = torch.ones([100000]).mul(0.25)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "left":
-        mu = torch.ones([100000]).mul(0.75)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    else:
-        raise ValueError("Input distribution mode is not supported.")
-    return data
-
-
-def div_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
-    # for div y/x, just need to approximate the 1/x with sum(-1*(x-1))^i
-    
-    # max number of extra terms besides the initial terms
-    max_extra_term = 2
-    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
-    max_shift = 3
-    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
-    max_power_diff = 2
-    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
-    max_sign_change = 2
-    
-    # define the floating-point input
-    data = div_data_gen(distribution)
-    
-    # reference model
-    ref_result = torch.div(1, data)
-
-    # approximate taylor series
-    point_list = [1.0]
-
-    for point in point_list:
-        scale = torch.Tensor([point])
-        const = torch.Tensor([1.])
-        var   = data - point
-        
-        coeff = [1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1, 1/1]
-        power = [  1,   2,   3,   4,   5,   6,   7,   8,   9]
-        sign  = [ -1,   1,  -1,   1,  -1,   1,  -1,   1,  -1]
-        
-        coeff, power, sign, min_err, max_err, avg_err, rms_err = param_search(max_extra_term, 
-                                                                              max_shift, 
-                                                                              max_power_diff, 
-                                                                              max_sign_change, 
-                                                                              ref_result, 
-                                                                              point, 
-                                                                              scale, 
-                                                                              const, 
-                                                                              var, 
-                                                                              coeff, 
-                                                                              power, 
-                                                                              sign, 
-                                                                              fxp=True, 
-                                                                              intwidth=intwidth, 
-                                                                              fracwidth=fracwidth, 
-                                                                              rounding=rounding, 
-                                                                              keepwidth=keepwidth, 
-                                                                              valid=valid)
-        
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-# the following codes are used to generate the parameters used for log
-# this method is not working well for log, acuracy is too low
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-def log_data_gen(distribution="uniform"):
-    # This is a function to generate data for chosing parameter for log, which
-    # only cares about the data between 0 and 1, because log is only used after softmax.
-    if distribution == "uniform":
-        data = torch.distributions.uniform.Uniform(torch.zeros([100000])+0.5, torch.ones([100000])).sample()
-    elif distribution == "middle":
-        mu = torch.ones([100000]).mul(0.5)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "right":
-        mu = torch.ones([100000]).mul(0.25)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    elif distribution == "left":
-        mu = torch.ones([100000]).mul(0.75)
-        sigma = torch.ones([100000]).mul(0.3)
-        data = torch.distributions.normal.Normal(mu, sigma).sample()
-        data = 1 - (data - data.floor())/2
-    else:
-        raise ValueError("Input distribution mode is not supported.")
-    return data
-
-
-def log_param_gen(distribution="uniform", intwidth=7, fracwidth=8, rounding="round", keepwidth=True, valid=True):
-    # max number of extra terms besides the initial terms
-    max_extra_term = 1
-    # max shifting offset, including for both left and right shifting. In total, there will be 2*max_shift+1 cases
-    max_shift = 3
-    # max power difference, this value is fixed to 2: 0 means no mul is skipped this cycle, while 1 mean mul is done this cycle.
-    max_power_diff = 2
-    # max sign change, this value is fixed to 2: 0 means no change from last sign, while 1 means changing sign from last.
-    max_sign_change = 2
-    
-    # define the floating-point input
-    data = log_data_gen(distribution)
-    
-    # reference model
-    ref_result = torch.log(data)
-    print(ref_result)
-
-    # approximate taylor series
-    point_list = [1.0]
-
-    for point in point_list:
-        scale = torch.Tensor([point])
-        const = torch.log(torch.Tensor([point]))
-        var   = data - point
-        print(scale, const)
-        coeff = [1/1, 1/2, 1/4, 1/4, 1/4, 1/8]
-        power = [  1,   2,   3,   4,   5,   6]
-        sign  = [  1,  -1,   1,  -1,   1,  -1]
-        
-        coeff, power, sign, min_err, max_err, avg_err, rms_err = param_search(max_extra_term, 
-                                                                              max_shift, 
-                                                                              max_power_diff, 
-                                                                              max_sign_change, 
-                                                                              ref_result, 
-                                                                              point, 
-                                                                              scale, 
-                                                                              const, 
-                                                                              var, 
-                                                                              coeff, 
-                                                                              power, 
-                                                                              sign, 
-                                                                              fxp=True, 
-                                                                              intwidth=intwidth, 
-                                                                              fracwidth=fracwidth, 
-                                                                              rounding=rounding, 
-                                                                              keepwidth=keepwidth, 
-                                                                              valid=valid)
-    

@@ -56,27 +56,3 @@ def Trunc_val(input, intwidth=7, fracwidth=8, rounding="round"):
     else:
         raise ValueError("Input rounding is not supported.")
 
-        
-def data_gen(data_range="0.0_1.0", mu=0.5, sigma = 0.3):
-    # This is a function to generate data
-    if data_range == "0.0_1.0":
-        mu_eff = mu
-    elif data_range == "0.5_1.0":
-        mu_eff =  (mu - 0.5) * 2
-        
-    mu_tensor = torch.ones([100000]).mul(mu_eff)
-    sigma_tensor = torch.ones([100000]).mul(sigma)
-    data = torch.distributions.normal.Normal(mu_tensor, sigma_tensor).sample()
-    data = data - data.floor()
-    
-    if data_range == "0.0_1.0":
-        data = data
-    elif data_range == "0.5_1.0":
-        data =  data/2 + 0.5
-    
-    fig = plt.hist(data.cpu().numpy(), bins='auto')  # arguments are passed to np.histogram
-    plt.title("Histogram for data")
-    plt.show()
-    
-    return data
-
