@@ -10,3 +10,4 @@ There exist multiple versions of PEs.
 
 1. SECO: A Scalable Accuracy Approximate Exponential Function Via Cross-Layer Optimization. In ISLPED'19.
 2. UNO: Virtualizing and Unifying Nonlinear Operations for Emerging Neural Networks. In ISLPED'21.
+3. When Dataflows Converge: Reconfigurable and Approximate Computing for Emerging Neural Networks. In ICCD'21.
