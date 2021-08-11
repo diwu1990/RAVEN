@@ -41,3 +41,17 @@ def poly(coeff,
     
     return mac
     
+
+def RAVENtaylor(offset, scale, var, cycle, coeff, intwidth, fracwidth, rounding):
+    degree = cycle - 1
+    mac = poly(coeff=coeff[0:degree], 
+                intwidth=intwidth[1:degree], 
+                fracwidth=fracwidth[1:degree], 
+                x=var, 
+                rounding=rounding)
+                
+    output =    Trunc(offset,   intwidth = 2 * intwidth[0] + 1, fracwidth = 2 * fracwidth[0], rounding = rounding) + \
+                Trunc(mac,      intwidth = intwidth[0],         fracwidth = fracwidth[0],     rounding = rounding) * \
+                Trunc(scale,    intwidth = intwidth[0],         fracwidth = fracwidth[0],     rounding = rounding)
+    return output
+
