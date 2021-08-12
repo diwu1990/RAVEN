@@ -33,33 +33,6 @@ rounding=args.rounding
 
 ####################################################################################
 print("# # # # # # # # # # # # # # # #")
-print("# Test RAVENexp")
-print("# # # # # # # # # # # # # # # #")
-start, end, interval = 0., 1., 0.001
-print("input range: ", start, end)
-x = torch.arange(start, end, interval).to(device)
-x.requires_grad_()
-approximate = RAVENexp(cycle=cycle, intwidth_max=intwidth_max, fracwidth_max=fracwidth_max, bitwidth_reduce=bitwidth_reduce, rounding=rounding).to(device)(x)
-approximate.sum().backward()
-
-x = torch.arange(start, end, interval).to(device)
-x.requires_grad_()
-precise = torch.exp(x)
-precise.sum().backward()
-
-error = (approximate - precise) / precise
-print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
-
-error = (approximate - precise)
-print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
-print("\n")
-
-
-
-####################################################################################
-print("# # # # # # # # # # # # # # # #")
 print("# Test RAVENdiv")
 print("# # # # # # # # # # # # # # # #")
 start, end, interval = 0.5, 1., 0.001
@@ -80,12 +53,39 @@ precise = torch.div(y, x)
 precise.sum().backward()
 
 error = (approximate - precise) / precise
-print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
 error = (approximate - precise)
-print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
+print("\n")
+
+
+
+####################################################################################
+print("# # # # # # # # # # # # # # # #")
+print("# Test RAVENexp")
+print("# # # # # # # # # # # # # # # #")
+start, end, interval = 0., 1., 0.001
+print("input range: ", start, end)
+x = torch.arange(start, end, interval).to(device)
+x.requires_grad_()
+approximate = RAVENexp(cycle=cycle, intwidth_max=intwidth_max, fracwidth_max=fracwidth_max, bitwidth_reduce=bitwidth_reduce, rounding=rounding).to(device)(x)
+approximate.sum().backward()
+
+x = torch.arange(start, end, interval).to(device)
+x.requires_grad_()
+precise = torch.exp(x)
+precise.sum().backward()
+
+error = (approximate - precise) / precise
+print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
+
+error = (approximate - precise)
+print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 print("\n")
 
 
@@ -107,12 +107,12 @@ precise = torch.log(x)
 precise.sum().backward()
 
 error = (approximate - precise) / precise
-print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
 error = (approximate - precise)
-print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 print("\n")
 
 
@@ -135,12 +135,12 @@ if args.verbose is True:
     precise.sum().backward()
 
     error = (approximate - precise) / precise
-    print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
     error = (approximate - precise)
-    print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
     print("\n")
 
 
@@ -162,12 +162,12 @@ if args.verbose is True:
     precise.sum().backward()
 
     error = (approximate - precise) / precise
-    print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
     error = (approximate - precise)
-    print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
     print("\n")
 
 
@@ -189,12 +189,12 @@ if args.verbose is True:
     precise.sum().backward()
 
     error = (approximate - precise) / precise
-    print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
     error = (approximate - precise)
-    print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
     print("\n")
 
 
@@ -216,10 +216,10 @@ if args.verbose is True:
     precise.sum().backward()
 
     error = (approximate - precise) / precise
-    print("relative error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("relative error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
 
     error = (approximate - precise)
-    print("absolute error: %1.4f ~ %1.4f (mean %1.4f)" % (error.min().item(), error.max().item(), error.mean().item()))
-    print("\trms error: %1.4f" % (error.mul(error).mean().sqrt()).item())
+    print("absolute error: %1.3f ~ %1.3f (mean %1.3f)" % (error.min().item(), error.max().item(), error.mean().item()))
+    print("\trms error: %1.3f" % (error.mul(error).mean().sqrt()).item())
     print("\n")
