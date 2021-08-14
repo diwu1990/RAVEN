@@ -20,9 +20,9 @@ module offset_gen #(
 
     priority_enc_16 U_priority_enc_16(.in(x_i), .out(shiftx));
 
-    assign offset_x =   (op == 2'b01) ? {`MAC_BW{1'b0}} : // div: 0
-                        (op == 2'b10) ? {`MAC_BW{1'b0}} : // exp: 0
-                        (op == 2'b11) ? log_offset : {`MAC_BW{1'b0}}; // log: log(2^(ex))
+    assign offset_x =   (op == 2'b01) ? {MUL_BW{1'b0}} : // div: 0
+                        (op == 2'b10) ? {MUL_BW{1'b0}} : // exp: 0
+                        (op == 2'b11) ? log_offset : {MUL_BW{1'b0}}; // log: log(2^(ex))
 
     // offset
     always_ff @(posedge clk or negedge rst_n) begin : offset_output

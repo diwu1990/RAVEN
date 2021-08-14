@@ -35,7 +35,7 @@ module scale_gen #(
     
     assign scale_xy =   (op == 2'b01) ? y_i >> shiftx : //div; y*2^(-ex)
                         (op == 2'b10) ? exp_scale : // exp: exp(x_int)
-                        (op == 2'b11) ? {`MAC_BW{1'b1}} : {`MAC_BW{1'b0}}; // log: -1
+                        (op == 2'b11) ? {MUL_BW{1'b1}} : {MUL_BW{1'b0}}; // log: -1
 
     always_ff @(*) begin : proc_exp_scale
         case (x_int)

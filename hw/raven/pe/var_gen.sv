@@ -29,7 +29,7 @@ module var_gen #(
 
     assign var_x  = (gemm_uno == 2'b01) ? point_sub_x : // div: POINT - x_norm
                     (gemm_uno == 2'b10) ? {{(INT_BW+1){x_i[MUL_BW-1]}}, x_frac} : // exp: x_frac
-                    (gemm_uno == 2'b11) ? point_sub_x : {MAC_BW{1'b0}} ; // log: POINT - x_norm
+                    (gemm_uno == 2'b11) ? point_sub_x : {MUL_BW{1'b0}} ; // log: POINT - x_norm
 
     // var
     always_ff @(posedge clk or negedge rst_n) begin : vreg_output
