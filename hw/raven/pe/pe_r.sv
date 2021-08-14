@@ -1,7 +1,7 @@
 `include "scale_gen.sv"
 `include "offset_gen.sv"
 
-module pe_m #(
+module pe_r #(
     parameter INT_BW = 5,
     parameter FRA_BW = 10,
     parameter MUL_BW = 16,
@@ -81,7 +81,6 @@ module pe_m #(
             ireg <= x_i;
         end
     end
-    assign x_o = ireg;
 
     // scale
     scale_gen #(
@@ -102,7 +101,7 @@ module pe_m #(
         .FRA_BW(FRA_BW),
         .MUL_BW(MUL_BW),
         .ACC_BW(ACC_BW)
-    ) U_scale_gen(
+    ) U_offset_gen(
         .clk(clk),
         .rst_n(rst_n),
         .gemm_uno(gemm_uno),
