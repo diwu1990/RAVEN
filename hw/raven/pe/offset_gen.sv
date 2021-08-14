@@ -35,8 +35,8 @@ module offset_gen #(
 
     always_ff @(*) begin : proc_log_offset
         case (shiftx)
-            5'b00000 : log_offset <= (ACC_BW)'b0001000000000000;
-            5'b00001 : log_offset <= (ACC_BW)'b0010101110000000;
+            5'b00000 : log_offset <= {ACC_BW}'b0001000000000000;
+            5'b00001 : log_offset <= {ACC_BW}'b0010101110000000;
             5'b00010 : log_offset <= ACC_BW'b0111011001000000;
             5'b00011 : log_offset <= ACC_BW'b0111111111110000;
             5'b00100 : log_offset <= ACC_BW'b0111111111110000;
