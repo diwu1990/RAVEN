@@ -39,10 +39,10 @@ module pe_m #(
 
     // mac
     always_comb begin : mac_i_trunc
-        if mac_i > {{(ACC_BW-INT_BW-FRA_BW*2){1'b0}}, {INT_BW{1'b1}}, {(FRA_BW*2){1'b1}}} begin
+        if (mac_i > {{(ACC_BW-INT_BW-FRA_BW*2){1'b0}}, {INT_BW{1'b1}}, {(FRA_BW*2){1'b1}}}) begin
             mac_t = {1'b0, {INT_BW{1'b1}}, {FRA_BW{1'b1}}}
         end
-        else if mac_i < {(ACC_BW-INT_BW-FRA_BW*2), {INT_BW{1'b0}}, {(FRA_BW*2)FRA_BW{1'b0}}} begin
+        else if (mac_i < {(ACC_BW-INT_BW-FRA_BW*2), {INT_BW{1'b0}}, {(FRA_BW*2)FRA_BW{1'b0}}}) begin
             mac_t = {1'b1, {INT_BW{1'b0}}, {FRA_BW{1'b0}}}
         end else begin
             mac_t = mac_i[ACC_BW-1 : ACC_BW-MUL_BW]
