@@ -7,13 +7,13 @@ module adder_tree_16 #(
     output logic [ACC_BW-1 : 0] out_l2 [ 3 : 0],
     output logic [ACC_BW-1 : 0] out_l3
 );
-    logic [ACC_BW+3 : 0] sum_l2 [ 3 : 0];
-    logic [ACC_BW+5 : 0] sum_l3;
+    logic [ACC_BW+1 : 0] sum_l2 [ 3 : 0];
+    logic [ACC_BW+3 : 0] sum_l3;
 
     genvar i;
     generate
         for (i = 0; i < 4; i++) begin
-            assign out_l2[i] = sum_l2[i][ACC_BW+3 : 4];
+            assign out_l2[i] = sum_l2[i][ACC_BW+1 : 2];
             always_ff @(posedge clk or negedge rst_n) begin : proc_sum_l2
                 if(~rst_n) begin
                     sum_l2[i] <= 0;
@@ -24,7 +24,7 @@ module adder_tree_16 #(
         end
     endgenerate
 
-    assign out_l3 = sum_l3[ACC_BW+5 : 6];
+    assign out_l3 = sum_l3[ACC_BW+3 : 4];
     always_ff @(posedge clk or negedge rst_n) begin : proc_sum_l3
         if(~rst_n) begin
             sum_l3 <= 0;
