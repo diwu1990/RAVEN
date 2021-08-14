@@ -50,8 +50,8 @@ module pe_r #(
     end
 
     assign mac_mux = (gemm_uno == 2'b0) ? wreg : mac_t;
-    assign var_mux = (gemm_uno == 2'b0) ? ireg[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW] : var_o[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW];
-    assign acc_mux = (gemm_uno == 2'b0) ?  o_i : wreg;
+    assign var_mux = (gemm_uno == 2'b0) ? ireg[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW] : scale[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW];
+    assign acc_mux = (gemm_uno == 2'b0) ?  o_i : offset;
 
     always_ff @(posedge clk or negedge rst_n) begin : mac_output
         if(~rst_n) begin
