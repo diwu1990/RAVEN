@@ -1,4 +1,5 @@
-`include "priority_enc_16.sv"
+`ifndef PRIORITY_ENC
+    `include "priority_enc_16.sv"
 
 module offset_gen #(
     parameter INT_BW = 5,
