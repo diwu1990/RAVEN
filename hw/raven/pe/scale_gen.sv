@@ -1,6 +1,7 @@
 `ifndef PRIORITY_ENC
     `define PRIORITY_ENC
     `include "priority_enc_16.sv"
+`endif
 
 module scale_gen #(
     parameter INT_BW = 5,
