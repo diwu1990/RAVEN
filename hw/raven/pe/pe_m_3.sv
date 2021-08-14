@@ -22,11 +22,11 @@ module pe_m_3 #(
     
     logic signed [MUL_BW-1 : 0] mac_t; // the left input of mul
 
-    logic signed [MUL_BW-1 : 0] mac_mux; // the left input of mul
-    logic signed [MUL_BW-1 : 0] var_mux; // the bottom input of mul
+    logic signed [INT_BW+FRA_BW : 0] mac_mux; // the left input of mul
+    logic signed [INT_BW+FRA_BW : 0] var_mux; // the bottom input of mul
     logic signed [ACC_BW-1 : 0] acc_mux; // the bottom input of add
 
-    logic signed [MUL_BW-1 : 0] wreg;
+    logic signed [INT_BW+FRA_BW : 0] wreg;
     logic signed [MUL_BW-1 : 0] ireg;
     logic signed [MUL_BW-1 : 0] vreg;
     logic signed [ACC_BW-1 : 0] oreg;
@@ -44,7 +44,7 @@ module pe_m_3 #(
     end
 
     assign mac_mux = (gemm_uno == 2'b0) ? wreg : mac_t;
-    assign var_mux = (gemm_uno == 2'b0) ? ireg : vreg;
+    assign var_mux = (gemm_uno == 2'b0) ? ireg[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW] : var_o[MUL_BW-1 : MUL_BW-1-INT_BW-FRA_BW];
     assign acc_mux = (gemm_uno == 2'b0) ?  o_i : wreg;
 
     always_ff @(posedge clk or negedge rst_n) begin : mac_output
