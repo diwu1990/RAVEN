@@ -1,4 +1,4 @@
-module adder_tree #(
+module adder_tree_16 #(
     parameter ACC_BW = 32
 )(
     input logic clk,    // Clock
