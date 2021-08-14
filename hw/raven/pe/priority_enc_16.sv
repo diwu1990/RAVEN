@@ -1,4 +1,6 @@
 module priority_enc_16 (
+    input clk,
+    input rst_n,
     input logic [15 : 0] in,
     output logic [4 : 0] out
 );
