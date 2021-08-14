@@ -18,6 +18,7 @@ module var_gen #(
     logic [FRA_BW-1 : 0] x_frac;
     logic [4 : 0] shiftx;
     logic [MUL_BW-1 : 0] var_x;
+    logic [MUL_BW-1 : 0] point_sub_x;
 
     assign x_int = x_i[MUL_BW-1 : FRA_BW];
     assign x_frac = x_i[FRA_BW-1 : 0];
