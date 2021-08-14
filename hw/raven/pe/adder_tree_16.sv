@@ -3,7 +3,7 @@ module adder_tree_16 #(
 )(
     input logic clk,    // Clock
     input logic rst_n,  // Asynchronous reset active low
-    output logic [ACC_BW-1 : 0] in [15 : 0],
+    input logic [ACC_BW-1 : 0] in [15 : 0],
     output logic [ACC_BW-1 : 0] out_l2 [ 3 : 0],
     output logic [ACC_BW-1 : 0] out_l3
 );
