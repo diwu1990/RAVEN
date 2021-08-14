@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : mac
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:07:17 2021
+Date   : Sat Aug 14 16:44:45 2021
 ****************************************
 
 

@@ -5,9 +5,9 @@ Warning: Design has unannotated sequential cell outputs. (PWR-415)
 ****************************************
 Report : power
         -analysis_effort low
-Design : adder_tree
+Design : adder_tree_64
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:05:58 2021
+Date   : Sat Aug 14 16:43:25 2021
 ****************************************
 
 
@@ -21,7 +21,7 @@ Wire Load Model Mode: enclosed
 
 Design        Wire Load Model            Library
 ------------------------------------------------
-adder_tree             70000             saed32rvt_tt0p85v25c
+adder_tree_64          70000             saed32rvt_tt0p85v25c
 
 
 Global Operating Voltage = 0.85 
