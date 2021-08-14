@@ -4,15 +4,15 @@ Warning: Design has unannotated primary inputs. (PWR-414)
 ****************************************
 Report : power
         -analysis_effort low
-Design : priority_enc_16
+Design : adder_tree
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:28:52 2021
+Date   : Sat Aug 14 16:03:33 2021
 ****************************************
 
 
 Library(s) Used:
 
-    saed32rvt_tt0p85v25c (File: /cae/apps/data/saed32_edk-2018/lib/stdcell_rvt/db_nldm/saed32rvt_tt0p85v25c.db)
+    No libraries used.
 
 
 Operating Conditions: tt0p85v25c   Library: saed32rvt_tt0p85v25c
@@ -20,7 +20,7 @@ Wire Load Model Mode: enclosed
 
 Design        Wire Load Model            Library
 ------------------------------------------------
-priority_enc_16        ForQA             saed32rvt_tt0p85v25c
+adder_tree             ForQA             saed32rvt_tt0p85v25c
 
 
 Global Operating Voltage = 0.85 
@@ -32,24 +32,24 @@ Power-specific unit information :
     Leakage Power Units = 1pW
 
 
-  Cell Internal Power  = 846.2899 nW   (64%)
-  Net Switching Power  = 478.4941 nW   (36%)
+  Cell Internal Power  =   0.0000 uW        
+  Net Switching Power  =   0.0000 uW        
                          ---------
-Total Dynamic Power    =   1.3248 uW  (100%)
+Total Dynamic Power    =   0.0000 uW        
 
-Cell Leakage Power     =   1.0620 uW
+Cell Leakage Power     =   0.0000 pW
 
 
                  Internal         Switching           Leakage            Total
 Power Group      Power            Power               Power              Power   (   %    )  Attrs
 --------------------------------------------------------------------------------------------------
-io_pad             0.0000            0.0000            0.0000            0.0000  (   0.00%)
-memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
-black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
-clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
-register           0.0000            0.0000            0.0000            0.0000  (   0.00%)
-sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational      0.8463            0.4785        1.0620e+06            2.3867  ( 100.00%)
+io_pad             0.0000            0.0000            0.0000            0.0000  (     N/A)
+memory             0.0000            0.0000            0.0000            0.0000  (     N/A)
+black_box          0.0000            0.0000            0.0000            0.0000  (     N/A)
+clock_network      0.0000            0.0000            0.0000            0.0000  (     N/A)
+register           0.0000            0.0000            0.0000            0.0000  (     N/A)
+sequential         0.0000            0.0000            0.0000            0.0000  (     N/A)
+combinational      0.0000            0.0000            0.0000            0.0000  (     N/A)
 --------------------------------------------------------------------------------------------------
-Total              0.8463 uW         0.4785 uW     1.0620e+06 pW         2.3867 uW
+Total              0.0000 uW         0.0000 uW         0.0000 pW         0.0000 uW
 1

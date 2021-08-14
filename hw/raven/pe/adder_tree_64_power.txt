@@ -5,9 +5,9 @@ Warning: Design has unannotated sequential cell outputs. (PWR-415)
 ****************************************
 Report : power
         -analysis_effort low
-Design : pe_r
+Design : adder_tree
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:28:36 2021
+Date   : Sat Aug 14 16:05:58 2021
 ****************************************
 
 
@@ -21,7 +21,7 @@ Wire Load Model Mode: enclosed
 
 Design        Wire Load Model            Library
 ------------------------------------------------
-pe_r                   8000              saed32rvt_tt0p85v25c
+adder_tree             70000             saed32rvt_tt0p85v25c
 
 
 Global Operating Voltage = 0.85 
@@ -33,12 +33,12 @@ Power-specific unit information :
     Leakage Power Units = 1pW
 
 
-  Cell Internal Power  = 352.7703 uW   (84%)
-  Net Switching Power  =  67.3545 uW   (16%)
+  Cell Internal Power  =   3.1095 mW   (83%)
+  Net Switching Power  = 655.5977 uW   (17%)
                          ---------
-Total Dynamic Power    = 420.1248 uW  (100%)
+Total Dynamic Power    =   3.7651 mW  (100%)
 
-Cell Leakage Power     = 172.0460 uW
+Cell Leakage Power     = 890.8458 uW
 
 
                  Internal         Switching           Leakage            Total
@@ -48,9 +48,9 @@ io_pad             0.0000            0.0000            0.0000            0.0000 
 memory             0.0000            0.0000            0.0000            0.0000  (   0.00%)
 black_box          0.0000            0.0000            0.0000            0.0000  (   0.00%)
 clock_network      0.0000            0.0000            0.0000            0.0000  (   0.00%)
-register         171.0034            1.0872        2.3610e+07          195.7010  (  33.05%)
+register       1.4264e+03           38.4478        1.8259e+08        1.6474e+03  (  35.38%)
 sequential         0.0000            0.0000            0.0000            0.0000  (   0.00%)
-combinational    181.7669           66.2672        1.4844e+08          396.4697  (  66.95%)
+combinational  1.6831e+03          617.1508        7.0826e+08        3.0085e+03  (  64.62%)
 --------------------------------------------------------------------------------------------------
-Total            352.7704 uW        67.3545 uW     1.7205e+08 pW       592.1707 uW
+Total          3.1095e+03 uW       655.5986 uW     8.9085e+08 pW     4.6559e+03 uW
 1
