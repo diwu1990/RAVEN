@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : pe_l
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:47:00 2021
+Date   : Sat Aug 14 17:29:43 2021
 ****************************************
 
 

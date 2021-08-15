@@ -6,7 +6,7 @@ Report : power
         -analysis_effort low
 Design : priority_enc_16
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 17:06:19 2021
+Date   : Sat Aug 14 17:49:05 2021
 ****************************************
 
 

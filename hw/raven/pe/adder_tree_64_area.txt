@@ -3,7 +3,7 @@
 Report : area
 Design : adder_tree_64
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 16:43:22 2021
+Date   : Sat Aug 14 17:26:04 2021
 ****************************************
 
 Information: Updating design information... (UID-85)

@@ -7,7 +7,7 @@ Report : power
         -analysis_effort low
 Design : pe_r_8
 Version: Q-2019.12-SP3
-Date   : Sat Aug 14 17:03:06 2021
+Date   : Sat Aug 14 17:45:51 2021
 ****************************************
 
 
